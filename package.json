@@ -1,0 +1,67 @@
+{
+  "name": "ai-model-status",
+  "displayName": "AI Model Status",
+  "description": "AI Model Health Check Tracker",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aiModelStatus.addOpenAICompatibleProvider",
+        "title": "AI Model Status: Add OpenAI-Compatible Provider"
+      },
+      {
+        "command": "aiModelStatus.refreshModels",
+        "title": "AI Model Status: Refresh Models"
+      },
+      {
+        "command": "aiModelStatus.clearProviders",
+        "title": "AI Model Status: Clear Providers"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aiModelStatus",
+          "title": "AI Models",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "aiModelStatus": [
+        {
+          "id": "aiModelStatus.modelStatusView",
+          "type": "webview",
+          "name": "Model Status"
+        }
+      ]
+    }
+  },
+  "activationEvents": [],
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:webview": "pnpm --prefix ./webview-ui run build",
+    "build": "pnpm run build:webview && pnpm run compile"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.110.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  },
+  "dependencies": {
+    "vite": "^8.0.16"
+  }
+}
