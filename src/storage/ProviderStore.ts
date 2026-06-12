@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import type { ProviderConfig, ProviderInput } from "../domain/types";
+import { isValidHttpUrl } from "../domain/validation";
 
 const PROVIDERS_KEY = "aiModelStatus.providers";
 
@@ -146,13 +147,7 @@ function validateProvider(provider: ProviderConfig): void {
     throw new Error("Provider endpoint is required.");
   }
 
-  try {
-    const url = new URL(provider.endpoint);
-
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      throw new Error("Provider endpoint must use http or https.");
-    }
-  } catch {
-    throw new Error("Provider endpoint must be a valid URL.");
+  if (!isValidHttpUrl(provider.endpoint)) {
+    throw new Error("Provider endpoint must be a valid http or https URL.");
   }
 }

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { ProviderStore } from "./storage/ProviderStore";
 import { ModelCatalogService } from "./services/ModelCatalogService";
 import { getErrorMessage } from "./domain/errors";
-import type { WebviewRequest, WebviewResponse } from "./domain/webviewMessages";
+import type { WebviewRequest, WebviewResponse } from "./domain/messages";
 
 export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "aiModelStatus.modelStatusView";
