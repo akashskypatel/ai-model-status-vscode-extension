@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { ModelOutput } from "./components/ModelOutput";
 import { ProviderForm } from "./components/ProviderForm";
-import type { ExtensionMessage, ProviderConfig, ProviderInput, ModelCatalogSnapshot } from "./types";
+import type {
+  ExtensionMessage,
+  ModelCatalogSnapshot,
+  ProviderConfig,
+  ProviderInput,
+  ProviderModelsResult,
+  ProviderStatus
+} from "./types";
 import { vscode } from "./vscodeApi";
 import { readModelCatalogSnapshot } from "./modelSnapshot";
 
@@ -35,7 +42,32 @@ export function App() {
           setOutput(snapshot ?? message.payload);
           return;
         }
-        case "providerModelsUpdated":
+        case "providerModelsUpdated": {
+          if (!isProviderModelsResult(message.payload)) {
+            setOutput(message.payload);
+            return;
+          }
+
+          const updatedResult = message.payload;
+
+          setModelSnapshot(current => {
+            if (!current) {
+              return current;
+            }
+
+            return {
+              ...current,
+              results: current.results.map(existing =>
+                existing.providerId === updatedResult.providerId
+                  ? updatedResult
+                  : existing
+              )
+            };
+          });
+
+          setOutput(updatedResult);
+          return;
+        }
         case "providerProbeResult":
           setOutput(message.payload);
           return;
@@ -129,6 +161,8 @@ export function App() {
         snapshot={modelSnapshot}
         output={output}
         onRefreshModels={handleRefreshModels}
+        onRefreshProvider={handleRefreshProvider}
+        onRefreshModel={handleRefreshModel}
         onEditProvider={handleEditProvider}
       />
     </main>
@@ -156,5 +190,47 @@ function isProviderConfig(value: unknown): value is ProviderConfig {
     provider.type === "openai-compatible" &&
     typeof provider.endpoint === "string" &&
     (provider.authKind === "api-key" || provider.authKind === "none")
+  );
+}
+
+function handleRefreshProvider(providerId: string): void {
+  vscode.postMessage({
+    type: "refreshProvider",
+    payload: {
+      providerId
+    }
+  });
+}
+
+function handleRefreshModel(providerId: string, _modelId: string): void {
+  vscode.postMessage({
+    type: "refreshProvider",
+    payload: {
+      providerId
+    }
+  });
+}
+function isProviderModelsResult(value: unknown): value is ProviderModelsResult {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const result = value as Partial<ProviderModelsResult>;
+
+  return (
+    typeof result.providerId === "string" &&
+    isProviderStatus(result.providerStatus) &&
+    Array.isArray(result.models)
+  );
+}
+
+function isProviderStatus(value: unknown): value is ProviderStatus {
+  return (
+    value === "unknown" ||
+    value === "connected" ||
+    value === "auth_error" ||
+    value === "network_error" ||
+    value === "invalid_endpoint" ||
+    value === "provider_error"
   );
 }

@@ -60,6 +60,12 @@ export type WebviewMessage =
       type: "refreshModels";
     }
   | {
+      type: "refreshProvider";
+      payload: {
+        providerId: string;
+      };
+    }
+  | {
       type: "addProvider";
       payload: ProviderInput;
     }
@@ -69,7 +75,7 @@ export type WebviewMessage =
         providerId: string;
         input: ProviderInput;
       };
-  };
+    };
     
 export type ModelType =
   | "chat"

@@ -16,14 +16,17 @@ select {
 .app {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
+  gap: 0;
+  padding: 0;
 }
+
+/* Shared panel/header layout */
 
 .panel {
   border: 1px solid var(--vscode-panel-border);
   background: var(--vscode-editor-background);
   padding: 10px;
+  margin: 12px;
 }
 
 .panel-header {
@@ -42,6 +45,8 @@ h2 {
 .panel-header h2 {
   margin: 0;
 }
+
+/* Form layout */
 
 .form {
   display: flex;
@@ -74,8 +79,19 @@ select:focus {
   border-color: var(--vscode-focusBorder);
 }
 
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Buttons */
+
 .primary-button,
-.secondary-button,
+.secondary-button {
+  border: none;
+  cursor: pointer;
+}
 
 .primary-button {
   color: var(--vscode-button-foreground);
@@ -114,11 +130,11 @@ select:focus {
   background: var(--vscode-toolbar-hoverBackground);
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+.compact-button {
+  padding: 3px 8px;
 }
+
+/* Text states */
 
 .help-text,
 .muted,
@@ -139,109 +155,173 @@ select:focus {
   font-size: 12px;
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.list-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px;
-  border: 1px solid var(--vscode-panel-border);
-}
-
-pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-height: 300px;
-  overflow: auto;
-  background: var(--vscode-textCodeBlock-background);
-  padding: 8px;
-  margin: 8px 0 0;
-}
-
 .hidden {
   display: none !important;
 }
 
-.provider-card {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+/* Model panel */
+
+.model-panel {
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
-.provider-card-content {
+.model-panel > .panel-header {
+  padding: 8px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+}
+/* Model view */
+
+.model-view {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  min-height: 100%;
+  background: var(--vscode-sideBar-background);
+}
+
+.model-empty {
+  padding: 12px;
+}
+
+/* Provider accordion */
+
+.provider-accordion-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.provider-section {
+  background: var(--vscode-sideBar-background);
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.provider-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+  padding: 0 4px 0 8px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--vscode-sideBarSectionHeader-foreground);
+  background: var(--vscode-sideBarSectionHeader-background);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: none;
+  list-style: none;
+}
+
+.provider-summary::-webkit-details-marker {
+  display: none;
+}
+
+.provider-summary::marker {
+  content: "";
+}
+
+.provider-summary:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.provider-summary-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
 }
 
-.provider-card-content span {
-  overflow-wrap: anywhere;
+.provider-chevron {
+  flex: 0 0 auto;
+  width: 16px;
+  color: var(--vscode-descriptionForeground);
 }
 
-.provider-card-actions {
+.provider-section[open] .provider-chevron-closed {
+  display: none;
+}
+
+.provider-section:not([open]) .provider-chevron-open {
+  display: none;
+}
+
+.provider-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provider-model-count {
+  flex: 0 0 auto;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.provider-model-count::before {
+  content: "(";
+}
+
+.provider-model-count::after {
+  content: ")";
+}
+
+.provider-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: var(--vscode-editor-background);
+}
+
+.provider-empty,
+.provider-error {
+  margin: 8px;
+}
+
+.provider-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   flex: 0 0 auto;
 }
 
-.compact-button {
-  padding: 3px 8px;
+.provider-refresh-button,
+.provider-edit-button {
+  flex: 0 0 auto;
+  visibility: visible;
+  opacity: 0.85;
 }
 
-.model-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 10px;
+.provider-refresh-button:hover,
+.provider-edit-button:hover {
+  opacity: 1;
 }
 
-.model-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.model-group h3 {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--vscode-foreground);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.model-count {
-  color: var(--vscode-badge-foreground);
-  background: var(--vscode-badge-background);
-  border-radius: 999px;
-  padding: 1px 6px;
-  font-size: 11px;
-  font-weight: 500;
-}
+/* Model list/cards */
 
 .model-card-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
 }
 
 .model-card {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  border: 1px solid var(--vscode-panel-border);
-  background: var(--vscode-sideBar-background);
-  padding: 8px;
+  border: none;
+  border-top: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+  padding: 8px 10px 8px 28px;
+}
+
+.model-card:hover {
+  background: var(--vscode-list-hoverBackground);
 }
 
 .model-card-header {
@@ -255,6 +335,25 @@ pre {
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 12px;
+}
+
+.model-refresh-button {
+  flex: 0 0 auto;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 2px;
+  opacity: 0.85;
+}
+
+.model-refresh-button:hover {
+  opacity: 1;
+}
+
+.model-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .model-card-meta {
@@ -271,8 +370,11 @@ pre {
   padding: 1px 6px;
 }
 
+/* Status pills */
+
 .status-pill {
   flex: 0 0 auto;
+  align-self: flex-end;
   border-radius: 999px;
   padding: 1px 6px;
   font-size: 10px;
@@ -294,108 +396,14 @@ pre {
   border: 1px solid var(--vscode-descriptionForeground);
 }
 
-.provider-accordion-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
+/* Debug/raw output fallback */
 
-.provider-accordion {
-  border: 1px solid var(--vscode-panel-border);
-  background: var(--vscode-sideBar-background);
-}
-
-.provider-accordion-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 32px;
-  border-bottom: 1px solid var(--vscode-panel-border);
-}
-
-.provider-accordion-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--vscode-foreground);
-  background: transparent;
-  border: none;
-  padding: 6px 8px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.provider-accordion-toggle:hover {
-  background: var(--vscode-list-hoverBackground);
-}
-
-.provider-chevron {
-  flex: 0 0 auto;
-  color: var(--vscode-descriptionForeground);
-  width: 12px;
-}
-
-.provider-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.provider-edit-button {
-  flex: 0 0 auto;
-  margin-right: 4px;
-}
-
-.provider-accordion-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-}
-
-.model-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.model-card {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  border: 1px solid var(--vscode-panel-border);
-  background: var(--vscode-editor-background);
-  padding: 8px;
-}
-
-.model-card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.model-card-header strong {
-  min-width: 0;
+pre {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 12px;
-}
-
-.model-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  color: var(--vscode-descriptionForeground);
-  font-size: 11px;
-}
-
-.model-card-meta span {
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: 999px;
-  padding: 1px 6px;
+  max-height: 300px;
+  overflow: auto;
+  background: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  margin: 8px 0 0;
 }

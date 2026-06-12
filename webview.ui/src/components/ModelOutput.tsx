@@ -1,9 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type {
   AIModel,
   ModelCatalogSnapshot,
   ProviderConfig,
-  ProviderModelsResult,
   ProviderStatus
 } from "../types";
 
@@ -12,6 +11,8 @@ type ModelOutputProps = {
   snapshot?: ModelCatalogSnapshot;
   output: unknown;
   onRefreshModels(): void;
+  onRefreshProvider(providerId: string): void;
+  onRefreshModel(providerId: string, modelId: string): void;
   onEditProvider(provider: ProviderConfig): void;
 };
 
@@ -19,7 +20,8 @@ export function ModelOutput({
   providers,
   snapshot,
   output,
-  onRefreshModels,
+  onRefreshProvider,
+  onRefreshModel,
   onEditProvider
 }: ModelOutputProps) {
   const providerGroups = useMemo(
@@ -27,55 +29,41 @@ export function ModelOutput({
     [providers, snapshot]
   );
 
-  const totalModelCount = providerGroups.reduce(
-    (total, group) => total + group.models.length,
-    0
-  );
-
-  return (
-    <section className="panel">
-      <div className="panel-header">
-        <div>
-          <h2>Models</h2>
-          {snapshot && (
-            <div className="muted">
-              {totalModelCount} model{totalModelCount === 1 ? "" : "s"} discovered
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          className="secondary-button"
-          onClick={onRefreshModels}
-        >
-          Refresh
-        </button>
-      </div>
-
-      {!snapshot && (
+  if (!snapshot) {
+    return (
+      <section className="model-view">
         <pre>
           {typeof output === "string"
             ? output
             : JSON.stringify(output, null, 2)}
         </pre>
-      )}
+      </section>
+    );
+  }
 
-      {snapshot && providerGroups.length === 0 && (
-        <div className="empty">No providers added yet. Use the + button in the view title.</div>
-      )}
-
-      {snapshot && providerGroups.length > 0 && (
-        <div className="provider-accordion-list">
-          {providerGroups.map(group => (
-            <ProviderAccordion
-              key={group.provider.id}
-              group={group}
-              onEditProvider={onEditProvider}
-            />
-          ))}
+  if (providerGroups.length === 0) {
+    return (
+      <section className="model-view">
+        <div className="empty model-empty">
+          No providers added yet. Use the + button in the view title.
         </div>
-      )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="model-view">
+      <div className="provider-accordion-list">
+        {providerGroups.map(group => (
+          <ProviderAccordion
+            key={group.provider.id}
+            group={group}
+            onRefreshProvider={onRefreshProvider}
+            onRefreshModel={onRefreshModel}
+            onEditProvider={onEditProvider}
+          />
+        ))}
+      </div>
     </section>
   );
 }
@@ -89,75 +77,103 @@ type ProviderGroup = {
 
 type ProviderAccordionProps = {
   group: ProviderGroup;
+  onRefreshProvider(providerId: string): void;
+  onRefreshModel(providerId: string, modelId: string): void;
   onEditProvider(provider: ProviderConfig): void;
 };
 
 function ProviderAccordion({
   group,
+  onRefreshProvider,
+  onRefreshModel,
   onEditProvider
 }: ProviderAccordionProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const modelCount = group.models.length;
 
   return (
-    <section className="provider-accordion">
-      <div className="provider-accordion-header">
-        <button
-          type="button"
-          className="provider-accordion-toggle"
-          aria-expanded={isOpen}
-          onClick={() => setIsOpen(current => !current)}
-        >
+    <details className="provider-section" open>
+      <summary className="provider-summary">
+        <span className="provider-summary-left">
           <span
-            className={`provider-chevron codicon ${
-              isOpen ? "codicon-chevron-down" : "codicon-chevron-right"
-            }`}
+            className="provider-chevron codicon codicon-chevron-right provider-chevron-closed"
             aria-hidden="true"
           />
+          <span
+            className="provider-chevron codicon codicon-chevron-down provider-chevron-open"
+            aria-hidden="true"
+          />
+
           <span className="provider-title">{group.provider.name}</span>
-        </button>
 
-        <button
-          type="button"
-          className="icon-button provider-edit-button"
-          aria-label={`Edit ${group.provider.name}`}
-          title="Edit provider"
-          onClick={() => onEditProvider(group.provider)}
-        >
-          <span className="codicon codicon-edit" aria-hidden="true" />
-        </button>
+          <span className="provider-model-count">
+            {modelCount}
+          </span>
+        </span>
+
+        <span className="provider-actions">
+          <button
+            type="button"
+            className="icon-button provider-refresh-button"
+            aria-label={`Refresh ${group.provider.name}`}
+            title="Refresh provider models"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onRefreshProvider(group.provider.id);
+            }}
+          >
+            <span className="codicon codicon-refresh" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            className="icon-button provider-edit-button"
+            aria-label={`Edit ${group.provider.name}`}
+            title="Edit provider"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              onEditProvider(group.provider);
+            }}
+          >
+            <span className="codicon codicon-edit" aria-hidden="true" />
+          </button>
+        </span>
+      </summary>
+
+      <div className="provider-section-body">
+        {group.errorMessage && (
+          <div className="error provider-error">{group.errorMessage}</div>
+        )}
+
+        {group.models.length === 0 && !group.errorMessage && (
+          <div className="empty provider-empty">
+            No models discovered for this provider.
+          </div>
+        )}
+
+        {group.models.length > 0 && (
+          <div className="model-card-list">
+            {group.models.map(model => (
+              <ModelCard
+                key={`${model.providerId}:${model.id}`}
+                model={model}
+                onRefreshModel={onRefreshModel}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {isOpen && (
-        <div className="provider-accordion-body">
-          {group.errorMessage && (
-            <div className="error">{group.errorMessage}</div>
-          )}
-
-          {group.models.length === 0 && !group.errorMessage && (
-            <div className="empty">No models discovered for this provider.</div>
-          )}
-
-          {group.models.length > 0 && (
-            <div className="model-card-list">
-              {group.models.map(model => (
-                <ModelCard
-                  key={`${model.providerId}:${model.id}`}
-                  model={model}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
+    </details>
   );
 }
 
 type ModelCardProps = {
   model: AIModel;
+  onRefreshModel(providerId: string, modelId: string): void;
 };
 
-function ModelCard({ model }: ModelCardProps) {
+function ModelCard({ model, onRefreshModel }: ModelCardProps) {
   const owner = typeof model.raw?.owned_by === "string"
     ? model.raw.owned_by
     : getOwnerFromModelId(model.id);
@@ -166,14 +182,27 @@ function ModelCard({ model }: ModelCardProps) {
     <article className="model-card">
       <div className="model-card-header">
         <strong title={model.name}>{model.name}</strong>
+
+        <button
+          type="button"
+          className="icon-button model-refresh-button"
+          aria-label={`Refresh ${model.name}`}
+          title="Refresh model"
+          onClick={() => onRefreshModel(model.providerId, model.id)}
+        >
+          <span className="codicon codicon-refresh" aria-hidden="true" />
+        </button>
+      </div>
+
+      <div className="model-card-footer">
+        <div className="model-card-meta">
+          <span>{model.type}</span>
+          {owner && <span>{owner}</span>}
+        </div>
+
         <span className={`status-pill status-${model.connectivityStatus}`}>
           {model.connectivityStatus}
         </span>
-      </div>
-
-      <div className="model-card-meta">
-        <span>{model.type}</span>
-        {owner && <span>{owner}</span>}
       </div>
     </article>
   );
