@@ -13,6 +13,8 @@ type ModelOutputProps = {
   onRefreshModels(): void;
   onRefreshProvider(providerId: string): void;
   onRefreshModel(providerId: string, modelId: string): void;
+  pendingModelPings: Set<string>;
+  pingedModels: Set<string>;
   onEditProvider(provider: ProviderConfig): void;
 };
 
@@ -22,6 +24,8 @@ export function ModelOutput({
   output,
   onRefreshProvider,
   onRefreshModel,
+  pendingModelPings,
+  pingedModels,
   onEditProvider
 }: ModelOutputProps) {
   const providerGroups = useMemo(
@@ -60,6 +64,8 @@ export function ModelOutput({
             group={group}
             onRefreshProvider={onRefreshProvider}
             onRefreshModel={onRefreshModel}
+            pendingModelPings={pendingModelPings}
+            pingedModels={pingedModels}
             onEditProvider={onEditProvider}
           />
         ))}
@@ -79,6 +85,8 @@ type ProviderAccordionProps = {
   group: ProviderGroup;
   onRefreshProvider(providerId: string): void;
   onRefreshModel(providerId: string, modelId: string): void;
+  pendingModelPings: Set<string>;
+  pingedModels: Set<string>;
   onEditProvider(provider: ProviderConfig): void;
 };
 
@@ -86,6 +94,8 @@ function ProviderAccordion({
   group,
   onRefreshProvider,
   onRefreshModel,
+  pendingModelPings,
+  pingedModels,
   onEditProvider
 }: ProviderAccordionProps) {
   const modelCount = group.models.length;
@@ -158,6 +168,8 @@ function ProviderAccordion({
               <ModelCard
                 key={`${model.providerId}:${model.id}`}
                 model={model}
+                isPinging={pendingModelPings.has(getModelPingKey(model.providerId, model.id))}
+                hasBeenPinged={pingedModels.has(getModelPingKey(model.providerId, model.id))}
                 onRefreshModel={onRefreshModel}
               />
             ))}
@@ -170,10 +182,17 @@ function ProviderAccordion({
 
 type ModelCardProps = {
   model: AIModel;
+  isPinging: boolean;
+  hasBeenPinged: boolean;
   onRefreshModel(providerId: string, modelId: string): void;
 };
 
-function ModelCard({ model, onRefreshModel }: ModelCardProps) {
+function ModelCard({
+  model,
+  isPinging,
+  hasBeenPinged,
+  onRefreshModel
+}: ModelCardProps) {
   const owner = typeof model.raw?.owned_by === "string"
     ? model.raw.owned_by
     : getOwnerFromModelId(model.id);
@@ -183,15 +202,23 @@ function ModelCard({ model, onRefreshModel }: ModelCardProps) {
       <div className="model-card-header">
         <strong title={model.name}>{model.name}</strong>
 
-        <button
-          type="button"
-          className="icon-button model-refresh-button"
-          aria-label={`Refresh ${model.name}`}
-          title="Ping model"
-          onClick={() => onRefreshModel(model.providerId, model.id)}
-        >
-          <span className="codicon codicon-refresh" aria-hidden="true" />
-        </button>
+        {isPinging ? (
+          <span
+            className="model-refresh-spinner codicon codicon-loading codicon-modifier-spin"
+            aria-label={`Pinging ${model.name}`}
+            title="Pinging model"
+          />
+        ) : (
+          <button
+            type="button"
+            className="icon-button model-refresh-button"
+            aria-label={`Refresh ${model.name}`}
+            title="Ping model"
+            onClick={() => onRefreshModel(model.providerId, model.id)}
+          >
+            <span className="codicon codicon-refresh" aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       <div className="model-card-footer">
@@ -200,9 +227,11 @@ function ModelCard({ model, onRefreshModel }: ModelCardProps) {
           {owner && <span>{owner}</span>}
         </div>
 
-        <span className={`status-pill status-${model.connectivityStatus}`}>
-          {model.connectivityStatus}
-        </span>
+        {hasBeenPinged && (
+          <span className={`status-pill status-${model.connectivityStatus}`}>
+            {model.connectivityStatus}
+          </span>
+        )}
       </div>
     </article>
   );
@@ -252,4 +281,8 @@ function getOwnerFromModelId(modelId: string): string | undefined {
   }
 
   return owner;
+}
+
+function getModelPingKey(providerId: string, modelId: string): string {
+  return `${providerId}:${modelId}`;
 }

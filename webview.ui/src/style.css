@@ -349,6 +349,16 @@ select:focus {
   opacity: 1;
 }
 
+.model-refresh-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  color: var(--vscode-progressBar-background);
+}
+
 .model-card-footer {
   display: flex;
   align-items: flex-end;

@@ -19,7 +19,12 @@ export function App() {
   const [output, setOutput] = useState<unknown>("Loading...");
   const [formError, setFormError] = useState<string | undefined>();
   const [modelSnapshot, setModelSnapshot] = useState<ModelCatalogSnapshot | undefined>();
-
+  const [pendingModelPings, setPendingModelPings] = useState<Set<string>>(
+    () => new Set()
+  );
+  const [pingedModels, setPingedModels] = useState<Set<string>>(
+    () => new Set<string>()
+  );
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
       const message = event.data;
@@ -72,10 +77,11 @@ export function App() {
           setOutput(message.payload);
           return;
 
-        case "error":
+        case "error": {
           setFormError(message.payload.message);
           setOutput(message.payload);
           return;
+        }
 
         case "showSettings":
           setOutput({
@@ -85,6 +91,19 @@ export function App() {
 
         case "modelPingResult": {
           const result = message.payload;
+          const key = getModelPingKey(result.providerId, result.modelId);
+
+          setPendingModelPings(current => {
+            const next = new Set(current);
+            next.delete(key);
+            return next;
+          });
+
+          setPingedModels(current => {
+            const next = new Set(current);
+            next.add(key);
+            return next;
+          });
 
           setModelSnapshot(current => {
             if (!current) {
@@ -175,9 +194,97 @@ export function App() {
   }
 
   function handleRefreshModels(): void {
+    setPingedModels(new Set<string>());
+    setPendingModelPings(new Set<string>());
+
     vscode.postMessage({
       type: "refreshModels"
     });
+  }
+
+
+  function readProviders(payload: unknown): ProviderConfig[] {
+    if (!Array.isArray(payload)) {
+      return [];
+    }
+
+    return payload.filter(isProviderConfig);
+  }
+
+  function isProviderConfig(value: unknown): value is ProviderConfig {
+    if (!value || typeof value !== "object") {
+      return false;
+    }
+
+    const provider = value as Partial<ProviderConfig>;
+
+    return (
+      typeof provider.id === "string" &&
+      typeof provider.name === "string" &&
+      provider.type === "openai-compatible" &&
+      typeof provider.endpoint === "string" &&
+      (provider.authKind === "api-key" || provider.authKind === "none")
+    );
+  }
+
+  function handleRefreshProvider(providerId: string): void {
+    vscode.postMessage({
+      type: "refreshProvider",
+      payload: {
+        providerId
+      }
+    });
+  }
+
+  function getModelPingKey(providerId: string, modelId: string): string {
+    return `${providerId}:${modelId}`;
+  }
+
+  function handleRefreshModel(providerId: string, modelId: string): void {
+    const key = getModelPingKey(providerId, modelId);
+
+    setPendingModelPings(current => {
+      if (current.has(key)) {
+        return current;
+      }
+
+      const next = new Set(current);
+      next.add(key);
+      return next;
+    });
+
+    vscode.postMessage({
+      type: "pingModel",
+      payload: {
+        providerId,
+        modelId
+      }
+    });
+  }
+
+  function isProviderModelsResult(value: unknown): value is ProviderModelsResult {
+    if (!value || typeof value !== "object") {
+      return false;
+    }
+
+    const result = value as Partial<ProviderModelsResult>;
+
+    return (
+      typeof result.providerId === "string" &&
+      isProviderStatus(result.providerStatus) &&
+      Array.isArray(result.models)
+    );
+  }
+
+  function isProviderStatus(value: unknown): value is ProviderStatus {
+    return (
+      value === "unknown" ||
+      value === "connected" ||
+      value === "auth_error" ||
+      value === "network_error" ||
+      value === "invalid_endpoint" ||
+      value === "provider_error"
+    );
   }
 
   return (
@@ -199,76 +306,10 @@ export function App() {
         onRefreshModels={handleRefreshModels}
         onRefreshProvider={handleRefreshProvider}
         onRefreshModel={handleRefreshModel}
+        pendingModelPings={pendingModelPings}
+        pingedModels={pingedModels}
         onEditProvider={handleEditProvider}
       />
     </main>
-  );
-}
-
-function readProviders(payload: unknown): ProviderConfig[] {
-  if (!Array.isArray(payload)) {
-    return [];
-  }
-
-  return payload.filter(isProviderConfig);
-}
-
-function isProviderConfig(value: unknown): value is ProviderConfig {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const provider = value as Partial<ProviderConfig>;
-
-  return (
-    typeof provider.id === "string" &&
-    typeof provider.name === "string" &&
-    provider.type === "openai-compatible" &&
-    typeof provider.endpoint === "string" &&
-    (provider.authKind === "api-key" || provider.authKind === "none")
-  );
-}
-
-function handleRefreshProvider(providerId: string): void {
-  vscode.postMessage({
-    type: "refreshProvider",
-    payload: {
-      providerId
-    }
-  });
-}
-
-function handleRefreshModel(providerId: string, modelId: string): void {
-  vscode.postMessage({
-    type: "pingModel",
-    payload: {
-      providerId,
-      modelId
-    }
-  });
-}
-
-function isProviderModelsResult(value: unknown): value is ProviderModelsResult {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const result = value as Partial<ProviderModelsResult>;
-
-  return (
-    typeof result.providerId === "string" &&
-    isProviderStatus(result.providerStatus) &&
-    Array.isArray(result.models)
-  );
-}
-
-function isProviderStatus(value: unknown): value is ProviderStatus {
-  return (
-    value === "unknown" ||
-    value === "connected" ||
-    value === "auth_error" ||
-    value === "network_error" ||
-    value === "invalid_endpoint" ||
-    value === "provider_error"
   );
 }
