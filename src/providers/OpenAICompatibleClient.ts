@@ -75,7 +75,7 @@ export class OpenAICompatibleClient implements AIProviderClient {
   private async fetchModels(
     credentials: ProviderCredentials
   ): Promise<OpenAIModelsResponse> {
-    const endpoint = `${this.provider.endpoint}/v1/models`;
+    const endpoint = `${this.provider.endpoint}/models`;
 
     let response: Response;
 
@@ -100,7 +100,7 @@ export class OpenAICompatibleClient implements AIProviderClient {
 
     if (response.status === 404) {
       throw new ProviderRequestError(
-        "Provider does not expose an OpenAI-compatible /v1/models endpoint.",
+        "Provider does not expose an OpenAI-compatible /models endpoint.",
         "invalid_endpoint"
       );
     }

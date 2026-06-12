@@ -2,30 +2,196 @@ body {
   color: var(--vscode-foreground);
   background: var(--vscode-sideBar-background);
   font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
   padding: 0;
   margin: 0;
 }
 
-main {
+button,
+input,
+select {
+  font: inherit;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 12px;
 }
 
-button {
-  color: var(--vscode-button-foreground);
-  background: var(--vscode-button-background);
+.panel {
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+  padding: 10px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+h2 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.panel-header h2 {
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field span {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+input,
+select {
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  padding: 5px 6px;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--vscode-focusBorder);
+}
+
+.primary-button,
+.secondary-button,
+.icon-button {
   border: none;
-  padding: 6px 10px;
   cursor: pointer;
 }
 
-button:hover {
+.primary-button {
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  padding: 6px 10px;
+}
+
+.primary-button:hover {
   background: var(--vscode-button-hoverBackground);
+}
+
+.secondary-button {
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  padding: 6px 10px;
+}
+
+.secondary-button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.icon-button {
+  color: var(--vscode-icon-foreground);
+  background: transparent;
+  padding: 2px 6px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.icon-button:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.help-text,
+.muted,
+.empty {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+.help-text {
+  margin: 0;
+}
+
+.error {
+  color: var(--vscode-errorForeground);
+  background: var(--vscode-inputValidation-errorBackground);
+  border: 1px solid var(--vscode-inputValidation-errorBorder);
+  padding: 6px;
+  font-size: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--vscode-panel-border);
 }
 
 pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  background: var(--vscode-editor-background);
-  border: 1px solid var(--vscode-panel-border);
+  max-height: 300px;
+  overflow: auto;
+  background: var(--vscode-textCodeBlock-background);
   padding: 8px;
+  margin: 8px 0 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.provider-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.provider-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.provider-card-content span {
+  overflow-wrap: anywhere;
+}
+
+.provider-card-actions {
+  flex: 0 0 auto;
+}
+
+.compact-button {
+  padding: 3px 8px;
 }
