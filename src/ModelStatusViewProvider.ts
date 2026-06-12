@@ -23,7 +23,8 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.joinPath(this.context.extensionUri, "webview.ui", "dist")
+        vscode.Uri.joinPath(this.context.extensionUri, "webview.ui", "dist"),
+        vscode.Uri.joinPath(this.context.extensionUri, "node_modules", "@vscode", "codicons", "dist")
       ]
     };
 
@@ -192,6 +193,17 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
       vscode.Uri.joinPath(this.context.extensionUri, "webview.ui", "dist", "assets", "index.css")
     );
 
+    const codiconsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this.context.extensionUri,
+        "node_modules",
+        "@vscode",
+        "codicons",
+        "dist",
+        "codicon.css"
+      )
+    );
+
     const nonce = getNonce();
 
     return /* html */ `
@@ -204,11 +216,13 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
             content="
               default-src 'none';
               img-src ${webview.cspSource} https:;
+              font-src ${webview.cspSource};
               style-src ${webview.cspSource} 'nonce-${nonce}';
               script-src 'nonce-${nonce}';
             "
           />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <link rel="stylesheet" href="${codiconsUri}" nonce="${nonce}" />
           <link rel="stylesheet" href="${styleUri}" nonce="${nonce}" />
           <title>AI Model Status</title>
         </head>

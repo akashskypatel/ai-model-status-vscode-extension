@@ -92,6 +92,7 @@
     "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
+    "@vscode/codicons": "^0.0.45",
     "vite": "^8.0.16"
   }
 }

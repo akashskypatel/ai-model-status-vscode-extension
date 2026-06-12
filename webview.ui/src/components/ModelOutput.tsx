@@ -1,43 +1,36 @@
-import type { AIModel, ModelCatalogSnapshot, ModelType } from "../types";
-import {
-  getAllModels,
-  getProviderName,
-  groupModelsByType
-} from "../modelSnapshot";
+import { useMemo, useState } from "react";
+import type {
+  AIModel,
+  ModelCatalogSnapshot,
+  ProviderConfig,
+  ProviderModelsResult,
+  ProviderStatus
+} from "../types";
 
 type ModelOutputProps = {
+  providers: ProviderConfig[];
   snapshot?: ModelCatalogSnapshot;
   output: unknown;
   onRefreshModels(): void;
+  onEditProvider(provider: ProviderConfig): void;
 };
-
-const MODEL_TYPE_LABELS: Record<ModelType, string> = {
-  chat: "Chat",
-  embedding: "Embedding",
-  image: "Image",
-  audio: "Audio",
-  reranker: "Reranker",
-  completion: "Completion",
-  unknown: "Unknown"
-};
-
-const MODEL_TYPE_ORDER: ModelType[] = [
-  "chat",
-  "completion",
-  "embedding",
-  "image",
-  "audio",
-  "reranker",
-  "unknown"
-];
 
 export function ModelOutput({
+  providers,
   snapshot,
   output,
-  onRefreshModels
+  onRefreshModels,
+  onEditProvider
 }: ModelOutputProps) {
-  const models = snapshot ? getAllModels(snapshot) : [];
-  const groupedModels = groupModelsByType(models);
+  const providerGroups = useMemo(
+    () => buildProviderGroups(providers, snapshot),
+    [providers, snapshot]
+  );
+
+  const totalModelCount = providerGroups.reduce(
+    (total, group) => total + group.models.length,
+    0
+  );
 
   return (
     <section className="panel">
@@ -46,7 +39,7 @@ export function ModelOutput({
           <h2>Models</h2>
           {snapshot && (
             <div className="muted">
-              {models.length} model{models.length === 1 ? "" : "s"} discovered
+              {totalModelCount} model{totalModelCount === 1 ? "" : "s"} discovered
             </div>
           )}
         </div>
@@ -68,38 +61,92 @@ export function ModelOutput({
         </pre>
       )}
 
-      {snapshot && models.length === 0 && (
-        <div className="empty">No models discovered yet.</div>
+      {snapshot && providerGroups.length === 0 && (
+        <div className="empty">No providers added yet. Use the + button in the view title.</div>
       )}
 
-      {snapshot && models.length > 0 && (
-        <div className="model-groups">
-          {MODEL_TYPE_ORDER.map(type => {
-            const modelsForType = groupedModels[type];
+      {snapshot && providerGroups.length > 0 && (
+        <div className="provider-accordion-list">
+          {providerGroups.map(group => (
+            <ProviderAccordion
+              key={group.provider.id}
+              group={group}
+              onEditProvider={onEditProvider}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
-            if (modelsForType.length === 0) {
-              return null;
-            }
+type ProviderGroup = {
+  provider: ProviderConfig;
+  providerStatus: ProviderStatus;
+  errorMessage?: string;
+  models: AIModel[];
+};
 
-            return (
-              <section key={type} className="model-group">
-                <h3>
-                  {MODEL_TYPE_LABELS[type]}
-                  <span className="model-count">{modelsForType.length}</span>
-                </h3>
+type ProviderAccordionProps = {
+  group: ProviderGroup;
+  onEditProvider(provider: ProviderConfig): void;
+};
 
-                <div className="model-card-list">
-                  {modelsForType.map(model => (
-                    <ModelCard
-                      key={`${model.providerId}:${model.id}`}
-                      model={model}
-                      providerName={getProviderName(snapshot, model.providerId)}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
+function ProviderAccordion({
+  group,
+  onEditProvider
+}: ProviderAccordionProps) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  return (
+    <section className="provider-accordion">
+      <div className="provider-accordion-header">
+        <button
+          type="button"
+          className="provider-accordion-toggle"
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen(current => !current)}
+        >
+          <span
+            className={`provider-chevron codicon ${
+              isOpen ? "codicon-chevron-down" : "codicon-chevron-right"
+            }`}
+            aria-hidden="true"
+          />
+          <span className="provider-title">{group.provider.name}</span>
+        </button>
+
+        <button
+          type="button"
+          className="icon-button provider-edit-button"
+          aria-label={`Edit ${group.provider.name}`}
+          title="Edit provider"
+          onClick={() => onEditProvider(group.provider)}
+        >
+          <span className="codicon codicon-edit" aria-hidden="true" />
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="provider-accordion-body">
+          {group.errorMessage && (
+            <div className="error">{group.errorMessage}</div>
+          )}
+
+          {group.models.length === 0 && !group.errorMessage && (
+            <div className="empty">No models discovered for this provider.</div>
+          )}
+
+          {group.models.length > 0 && (
+            <div className="model-card-list">
+              {group.models.map(model => (
+                <ModelCard
+                  key={`${model.providerId}:${model.id}`}
+                  model={model}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -108,10 +155,9 @@ export function ModelOutput({
 
 type ModelCardProps = {
   model: AIModel;
-  providerName: string;
 };
 
-function ModelCard({ model, providerName }: ModelCardProps) {
+function ModelCard({ model }: ModelCardProps) {
   const owner = typeof model.raw?.owned_by === "string"
     ? model.raw.owned_by
     : getOwnerFromModelId(model.id);
@@ -126,12 +172,47 @@ function ModelCard({ model, providerName }: ModelCardProps) {
       </div>
 
       <div className="model-card-meta">
-        <span>{providerName}</span>
         <span>{model.type}</span>
         {owner && <span>{owner}</span>}
       </div>
     </article>
   );
+}
+
+function buildProviderGroups(
+  providers: ProviderConfig[],
+  snapshot?: ModelCatalogSnapshot
+): ProviderGroup[] {
+  if (!snapshot) {
+    return providers.map(provider => ({
+      provider,
+      providerStatus: "unknown",
+      models: []
+    }));
+  }
+
+  return snapshot.providers.map(provider => {
+    const result = snapshot.results.find(item => item.providerId === provider.id);
+
+    return {
+      provider,
+      providerStatus: result?.providerStatus ?? "unknown",
+      errorMessage: result?.errorMessage,
+      models: sortModels(result?.models ?? [])
+    };
+  });
+}
+
+function sortModels(models: AIModel[]): AIModel[] {
+  return [...models].sort((left, right) => {
+    const typeCompare = left.type.localeCompare(right.type);
+
+    if (typeCompare !== 0) {
+      return typeCompare;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
 }
 
 function getOwnerFromModelId(modelId: string): string | undefined {

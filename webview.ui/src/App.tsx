@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ModelOutput } from "./components/ModelOutput";
 import { ProviderForm } from "./components/ProviderForm";
-import { ProviderList } from "./components/ProviderList";
 import type { ExtensionMessage, ProviderConfig, ProviderInput, ModelCatalogSnapshot } from "./types";
 import { vscode } from "./vscodeApi";
 import { readModelCatalogSnapshot } from "./modelSnapshot";
@@ -125,12 +124,12 @@ export function App() {
         />
       )}
 
-      <ProviderList providers={providers} onEditProvider={handleEditProvider} />
-
       <ModelOutput
+        providers={providers}
         snapshot={modelSnapshot}
         output={output}
         onRefreshModels={handleRefreshModels}
+        onEditProvider={handleEditProvider}
       />
     </main>
   );
