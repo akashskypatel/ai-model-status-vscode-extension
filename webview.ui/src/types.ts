@@ -21,62 +21,78 @@ export type ProviderConfig = {
 
 export type ExtensionMessage =
   | {
-      type: "showAddProvider";
-      payload: {};
-    }
+    type: "showAddProvider";
+    payload: {};
+  }
   | {
-      type: "showSettings";
-      payload: {};
-    }
+    type: "showSettings";
+    payload: {};
+  }
   | {
-      type: "providersUpdated";
-      payload: unknown;
-    }
+    type: "providersUpdated";
+    payload: unknown;
+  }
   | {
-      type: "modelSnapshotUpdated";
-      payload: unknown;
-    }
+    type: "modelSnapshotUpdated";
+    payload: unknown;
+  }
   | {
-      type: "providerModelsUpdated";
-      payload: unknown;
-    }
+    type: "providerModelsUpdated";
+    payload: unknown;
+  }
   | {
-      type: "providerProbeResult";
-      payload: unknown;
-    }
+    type: "providerProbeResult";
+    payload: unknown;
+  }
   | {
-      type: "error";
-      payload: {
-        requestType?: string;
-        message: string;
-      };
+    type: "modelPingResult";
+    payload: {
+      providerId: string;
+      modelId: string;
+      connectivityStatus: ConnectivityStatus;
+      errorMessage?: string;
     };
+  }
+  | {
+    type: "error";
+    payload: {
+      requestType?: string;
+      message: string;
+    };
+  };
 
 export type WebviewMessage =
   | {
-      type: "ready";
-    }
+    type: "ready";
+  }
   | {
-      type: "refreshModels";
-    }
+    type: "refreshModels";
+  }
   | {
-      type: "refreshProvider";
-      payload: {
-        providerId: string;
-      };
-    }
-  | {
-      type: "addProvider";
-      payload: ProviderInput;
-    }
-  | {
-      type: "updateProvider";
-      payload: {
-        providerId: string;
-        input: ProviderInput;
-      };
+    type: "refreshProvider";
+    payload: {
+      providerId: string;
     };
-    
+  }
+  | {
+    type: "pingModel";
+    payload: {
+      providerId: string;
+      modelId: string;
+    };
+  }
+  | {
+    type: "addProvider";
+    payload: ProviderInput;
+  }
+  | {
+    type: "updateProvider";
+    payload: {
+      providerId: string;
+      input: ProviderInput;
+    };
+  };
+
 export type ModelType =
   | "chat"
   | "embedding"

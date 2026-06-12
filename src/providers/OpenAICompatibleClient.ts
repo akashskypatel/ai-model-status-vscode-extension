@@ -5,6 +5,7 @@ import type {
 import { getErrorMessage, ProviderRequestError } from "../domain/errors";
 import type {
   AIProviderClient,
+  PingModelResult,
   ProbeProviderResult,
   ProviderCredentials,
   RawProviderModel
@@ -17,7 +18,7 @@ type OpenAIModelsResponse = {
 };
 
 export class OpenAICompatibleClient implements AIProviderClient {
-  constructor(public readonly provider: ProviderConfig) {}
+  constructor(public readonly provider: ProviderConfig) { }
 
   async probe(credentials: ProviderCredentials): Promise<ProbeProviderResult> {
     try {
@@ -72,10 +73,94 @@ export class OpenAICompatibleClient implements AIProviderClient {
     }
   }
 
+  async pingModel(
+    modelId: string,
+    credentials: ProviderCredentials
+  ): Promise<PingModelResult> {
+    try {
+      await this.fetchChatCompletionPing(modelId, credentials);
+
+      return {
+        providerId: this.provider.id,
+        modelId,
+        connectivityStatus: "available"
+      };
+    } catch (error) {
+      return {
+        providerId: this.provider.id,
+        modelId,
+        connectivityStatus: "unavailable",
+        errorMessage: getErrorMessage(error)
+      };
+    }
+  }
+
+  private async fetchChatCompletionPing(
+    modelId: string,
+    credentials: ProviderCredentials
+  ): Promise<void> {
+    const endpoint = getOpenAIEndpoint(
+      this.provider.endpoint,
+      "/v1/chat/completions"
+    );
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    const isAbortError = (error: unknown): boolean => {
+      return (
+        error instanceof Error &&
+        error.name === "AbortError"
+      );
+    };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          ...this.getHeaders(credentials),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            {
+              role: "user",
+              content: "ping"
+            }
+          ],
+          max_tokens: 1
+        })
+      });
+
+      if (!response.ok) {
+        throw new ProviderRequestError(
+          `Model ping returned HTTP ${response.status}.`,
+          response.status === 401 || response.status === 403
+            ? "auth_error"
+            : "provider_error"
+        );
+      }
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw new ProviderRequestError(
+          "Model ping timed out after 10 seconds.",
+          "network_error"
+        );
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   private async fetchModels(
     credentials: ProviderCredentials
   ): Promise<OpenAIModelsResponse> {
-    const endpoint = `${this.provider.endpoint}/models`;
+    const endpoint = getOpenAIEndpoint(
+      this.provider.endpoint,
+      "/v1/models"
+    );
 
     let response: Response;
 
@@ -142,4 +227,15 @@ export class OpenAICompatibleClient implements AIProviderClient {
 
     return headers;
   }
+}
+
+function getOpenAIEndpoint(baseEndpoint: string, path: string): string {
+  const base = baseEndpoint.replace(/\/+$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (base.endsWith("/v1") && normalizedPath.startsWith("/v1/")) {
+    return `${base}${normalizedPath.slice("/v1".length)}`;
+  }
+
+  return `${base}${normalizedPath}`;
 }

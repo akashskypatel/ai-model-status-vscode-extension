@@ -20,7 +20,19 @@ export interface AIProviderClient {
   probe(credentials: ProviderCredentials): Promise<ProbeProviderResult>;
 
   listModels(credentials: ProviderCredentials): Promise<ProviderModelsResult>;
+
+  pingModel(
+    modelId: string,
+    credentials: ProviderCredentials
+  ): Promise<PingModelResult>;
 }
+
+export type PingModelResult = {
+  providerId: string;
+  modelId: string;
+  connectivityStatus: "available" | "unavailable";
+  errorMessage?: string;
+};
 
 export type RawProviderModel = {
   id?: string;

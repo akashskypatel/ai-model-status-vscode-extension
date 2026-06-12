@@ -83,6 +83,42 @@ export function App() {
           });
           return;
 
+        case "modelPingResult": {
+          const result = message.payload;
+
+          setModelSnapshot(current => {
+            if (!current) {
+              return current;
+            }
+
+            return {
+              ...current,
+              results: current.results.map(providerResult => {
+                if (providerResult.providerId !== result.providerId) {
+                  return providerResult;
+                }
+
+                return {
+                  ...providerResult,
+                  models: providerResult.models.map(model => {
+                    if (model.id !== result.modelId) {
+                      return model;
+                    }
+
+                    return {
+                      ...model,
+                      connectivityStatus: result.connectivityStatus
+                    };
+                  })
+                };
+              })
+            };
+          });
+
+          setOutput(result);
+          return;
+        }
+
         default: {
           const unreachable: never = message;
           setOutput(unreachable);
@@ -202,14 +238,16 @@ function handleRefreshProvider(providerId: string): void {
   });
 }
 
-function handleRefreshModel(providerId: string, _modelId: string): void {
+function handleRefreshModel(providerId: string, modelId: string): void {
   vscode.postMessage({
-    type: "refreshProvider",
+    type: "pingModel",
     payload: {
-      providerId
+      providerId,
+      modelId
     }
   });
 }
+
 function isProviderModelsResult(value: unknown): value is ProviderModelsResult {
   if (!value || typeof value !== "object") {
     return false;

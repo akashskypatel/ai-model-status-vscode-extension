@@ -38,6 +38,13 @@ export type WebviewRequest =
       payload: {
         providerId: string;
       };
+    }
+  | {
+      type: "pingModel";
+      payload: {
+        providerId: string;
+        modelId: string;
+      };
     };
 
 export type WebviewResponse =
@@ -56,6 +63,15 @@ export type WebviewResponse =
   | {
       type: "providerProbeResult";
       payload: unknown;
+    }
+  | {
+      type: "modelPingResult";
+      payload: {
+        providerId: string;
+        modelId: string;
+        connectivityStatus: "available" | "unavailable";
+        errorMessage?: string;
+      };
     }
   | {
       type: "showAddProvider";

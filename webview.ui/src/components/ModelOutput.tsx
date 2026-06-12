@@ -187,7 +187,7 @@ function ModelCard({ model, onRefreshModel }: ModelCardProps) {
           type="button"
           className="icon-button model-refresh-button"
           aria-label={`Refresh ${model.name}`}
-          title="Refresh model"
+          title="Ping model"
           onClick={() => onRefreshModel(model.providerId, model.id)}
         >
           <span className="codicon codicon-refresh" aria-hidden="true" />

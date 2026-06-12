@@ -19,7 +19,7 @@ const MODEL_TYPES: ModelType[] = [
 ];
 
 export class ModelCatalogService {
-  constructor(private readonly providerStore: ProviderStore) {}
+  constructor(private readonly providerStore: ProviderStore) { }
 
   async getSnapshot(): Promise<ModelCatalogSnapshot> {
     const providers = await this.providerStore.listProviders();
@@ -64,6 +64,19 @@ export class ModelCatalogService {
     const apiKey = await this.providerStore.getApiKey(provider.id);
 
     return client.probe({ apiKey });
+  }
+
+  async pingModel(providerId: string, modelId: string) {
+    const provider = await this.providerStore.getProvider(providerId);
+
+    if (!provider) {
+      throw new Error(`Provider not found: ${providerId}`);
+    }
+
+    const client = createProviderClient(provider);
+    const apiKey = await this.providerStore.getApiKey(provider.id);
+
+    return client.pingModel(modelId, { apiKey });
   }
 }
 
