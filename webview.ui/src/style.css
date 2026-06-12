@@ -195,3 +195,100 @@ pre {
 .compact-button {
   padding: 3px 8px;
 }
+
+.model-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.model-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.model-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.model-count {
+  color: var(--vscode-badge-foreground);
+  background: var(--vscode-badge-background);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.model-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.model-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-sideBar-background);
+  padding: 8px;
+}
+
+.model-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.model-card-header strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.model-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+
+.model-card-meta span {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.status-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.status-available {
+  color: var(--vscode-testing-iconPassed);
+  border: 1px solid var(--vscode-testing-iconPassed);
+}
+
+.status-unavailable {
+  color: var(--vscode-testing-iconFailed);
+  border: 1px solid var(--vscode-testing-iconFailed);
+}
+
+.status-unknown {
+  color: var(--vscode-descriptionForeground);
+  border: 1px solid var(--vscode-descriptionForeground);
+}

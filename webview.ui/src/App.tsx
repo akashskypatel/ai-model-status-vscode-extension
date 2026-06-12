@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { ModelOutput } from "./components/ModelOutput";
 import { ProviderForm } from "./components/ProviderForm";
 import { ProviderList } from "./components/ProviderList";
-import type { ExtensionMessage, ProviderConfig, ProviderInput } from "./types";
+import type { ExtensionMessage, ProviderConfig, ProviderInput, ModelCatalogSnapshot } from "./types";
 import { vscode } from "./vscodeApi";
+import { readModelCatalogSnapshot } from "./modelSnapshot";
 
 export function App() {
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
@@ -11,6 +12,7 @@ export function App() {
   const [isProviderFormVisible, setIsProviderFormVisible] = useState(false);
   const [output, setOutput] = useState<unknown>("Loading...");
   const [formError, setFormError] = useState<string | undefined>();
+  const [modelSnapshot, setModelSnapshot] = useState<ModelCatalogSnapshot | undefined>();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
@@ -27,7 +29,13 @@ export function App() {
           setProviders(readProviders(message.payload));
           return;
 
-        case "modelSnapshotUpdated":
+        case "modelSnapshotUpdated": {
+          const snapshot = readModelCatalogSnapshot(message.payload);
+
+          setModelSnapshot(snapshot);
+          setOutput(snapshot ?? message.payload);
+          return;
+        }
         case "providerModelsUpdated":
         case "providerProbeResult":
           setOutput(message.payload);
@@ -119,7 +127,11 @@ export function App() {
 
       <ProviderList providers={providers} onEditProvider={handleEditProvider} />
 
-      <ModelOutput output={output} onRefreshModels={handleRefreshModels} />
+      <ModelOutput
+        snapshot={modelSnapshot}
+        output={output}
+        onRefreshModels={handleRefreshModels}
+      />
     </main>
   );
 }
