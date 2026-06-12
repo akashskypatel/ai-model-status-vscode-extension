@@ -12,6 +12,14 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("aiModelStatus.addProvider", async () => {
+      await modelStatusViewProvider.showAddProvider();
+    }),
+
+    vscode.commands.registerCommand("aiModelStatus.openSettings", async () => {
+      await modelStatusViewProvider.showSettings();
+    }),
+
     vscode.commands.registerCommand("aiModelStatus.refreshModels", async () => {
       await modelStatusViewProvider.refreshModels();
     })

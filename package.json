@@ -11,18 +11,48 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "menus": {
+      "view/title": [
+        {
+          "command": "aiModelStatus.addProvider",
+          "when": "view == aiModelStatus.modelStatusView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "aiModelStatus.refreshModels",
+          "when": "view == aiModelStatus.modelStatusView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "aiModelStatus.openSettings",
+          "when": "view == aiModelStatus.modelStatusView",
+          "group": "navigation@3"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "aiModelStatus.addOpenAICompatibleProvider",
         "title": "AI Model Status: Add OpenAI-Compatible Provider"
       },
       {
-        "command": "aiModelStatus.refreshModels",
-        "title": "AI Model Status: Refresh Models"
-      },
-      {
         "command": "aiModelStatus.clearProviders",
         "title": "AI Model Status: Clear Providers"
+      },
+      {
+        "command": "aiModelStatus.addProvider",
+        "title": "Add Provider",
+        "icon": "$(add)"
+      },
+      {
+        "command": "aiModelStatus.openSettings",
+        "title": "Settings",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "aiModelStatus.refreshModels",
+        "title": "Refresh Models",
+        "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {

@@ -58,6 +58,14 @@ export type WebviewResponse =
       payload: unknown;
     }
   | {
+      type: "showAddProvider";
+      payload: {};
+    }
+  | {
+      type: "showSettings";
+      payload: {};
+    }
+  | {
       type: "error";
       payload: {
         requestType?: string;

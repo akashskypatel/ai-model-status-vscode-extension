@@ -54,6 +54,20 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  async showAddProvider(): Promise<void> {
+    await this.postMessage({
+      type: "showAddProvider",
+      payload: {}
+    });
+  }
+
+  async showSettings(): Promise<void> {
+    await this.postMessage({
+      type: "showSettings",
+      payload: {}
+    });
+  }
+
   private async handleMessage(message: WebviewRequest): Promise<void> {
     try {
       switch (message.type) {

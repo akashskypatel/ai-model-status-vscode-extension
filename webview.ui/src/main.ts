@@ -38,8 +38,24 @@ document.getElementById("refresh-models")?.addEventListener("click", () => {
 });
 
 window.addEventListener("message", event => {
-  if (output) {
-    output.textContent = JSON.stringify(event.data, null, 2);
+  const message = event.data;
+
+  switch (message.type) {
+    case "showAddProvider":
+      // Open your add-provider form/modal/view.
+      console.log("Show add provider UI");
+      break;
+
+    case "showSettings":
+      // Open your settings UI.
+      console.log("Show settings UI");
+      break;
+
+    default:
+      if (output) {
+        output.textContent = JSON.stringify(message, null, 2);
+      }
+      break;
   }
 });
 
