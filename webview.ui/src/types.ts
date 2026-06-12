@@ -1,22 +1,24 @@
 export type ProviderType = "openai-compatible";
 export type ProviderAuthKind = "api-key" | "none";
 
-export type ProviderInput = {
-  name: string;
-  type: ProviderType;
-  endpoint: string;
-  authKind: ProviderAuthKind;
-  apiKey?: string;
-};
-
 export type ProviderConfig = {
   id: string;
   name: string;
   type: ProviderType;
   endpoint: string;
   authKind: ProviderAuthKind;
-  createdAt?: string;
-  updatedAt?: string;
+  maxRequestsPerMinute?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProviderInput = {
+  name: string;
+  type: ProviderType;
+  endpoint: string;
+  authKind: ProviderAuthKind;
+  apiKey?: string;
+  maxRequestsPerMinute?: number;
 };
 
 export type ExtensionMessage =
@@ -90,6 +92,13 @@ export type WebviewMessage =
     payload: {
       providerId: string;
       input: ProviderInput;
+    };
+  }
+  | {
+    type: "pingProviderModels";
+    payload: {
+      providerId: string;
+      modelIds: string[];
     };
   };
 

@@ -3,7 +3,8 @@ import type { ProviderStatus } from "./types";
 export class ProviderRequestError extends Error {
   constructor(
     message: string,
-    public readonly status: ProviderStatus
+    public readonly status: ProviderStatus,
+    public readonly statusCode?: number
   ) {
     super(message);
     this.name = "ProviderRequestError";

@@ -8,6 +8,7 @@ export type ProviderConfig = {
   type: ProviderType;
   endpoint: string;
   authKind: ProviderAuthKind;
+  maxRequestsPerMinute?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -18,6 +19,7 @@ export type ProviderInput = {
   endpoint: string;
   authKind: ProviderAuthKind;
   apiKey?: string;
+  maxRequestsPerMinute?: number;
 };
 
 export type ProviderStatus =

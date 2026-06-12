@@ -178,6 +178,21 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
           return;
         }
 
+        case "pingProviderModels": {
+          await this.modelCatalogService.pingProviderModels(
+            message.payload.providerId,
+            message.payload.modelIds,
+            async result => {
+              await this.postMessage({
+                type: "modelPingResult",
+                payload: result
+              });
+            }
+          );
+
+          return;
+        }
+
         default: {
           const unreachable: never = message;
           throw new Error(`Unsupported webview message: ${JSON.stringify(unreachable)}`);

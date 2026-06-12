@@ -4,7 +4,7 @@ import type { ProviderConfig, ProviderInput } from "../domain/types";
 const PROVIDERS_KEY = "aiModelStatus.providers";
 
 export class ProviderStore {
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) { }
 
   async listProviders(): Promise<ProviderConfig[]> {
     return this.context.globalState.get<ProviderConfig[]>(PROVIDERS_KEY, []);
@@ -25,6 +25,7 @@ export class ProviderStore {
       type: input.type,
       endpoint: normalizeEndpoint(input.endpoint),
       authKind: input.authKind,
+      maxRequestsPerMinute: normalizeMaxRequestsPerMinute(input.maxRequestsPerMinute),
       createdAt: now,
       updatedAt: now
     };
@@ -62,6 +63,10 @@ export class ProviderStore {
         ? normalizeEndpoint(input.endpoint)
         : existing.endpoint,
       authKind: input.authKind ?? existing.authKind,
+      maxRequestsPerMinute:
+        input.maxRequestsPerMinute !== undefined
+          ? normalizeMaxRequestsPerMinute(input.maxRequestsPerMinute)
+          : existing.maxRequestsPerMinute,
       updatedAt: new Date().toISOString()
     };
 
@@ -108,6 +113,20 @@ export class ProviderStore {
   async deleteApiKey(providerId: string): Promise<void> {
     await this.context.secrets.delete(getApiKeySecretKey(providerId));
   }
+}
+
+function normalizeMaxRequestsPerMinute(
+  value: number | undefined
+): number | undefined {
+  if (value === undefined || Number.isNaN(value)) {
+    return undefined;
+  }
+
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error("Max Requests Per Minute must be greater than 0.");
+  }
+
+  return Math.floor(value);
 }
 
 function getApiKeySecretKey(providerId: string): string {

@@ -78,18 +78,24 @@ export class OpenAICompatibleClient implements AIProviderClient {
     credentials: ProviderCredentials
   ): Promise<PingModelResult> {
     try {
-      await this.fetchChatCompletionPing(modelId, credentials);
+      const statusCode = await this.fetchChatCompletionPing(modelId, credentials);
 
       return {
         providerId: this.provider.id,
         modelId,
-        connectivityStatus: "available"
+        connectivityStatus: "available",
+        statusCode
       };
     } catch (error) {
+      const statusCode = error instanceof ProviderRequestError
+        ? error.statusCode
+        : undefined;
+
       return {
         providerId: this.provider.id,
         modelId,
         connectivityStatus: "unavailable",
+        statusCode,
         errorMessage: getErrorMessage(error)
       };
     }
@@ -98,19 +104,14 @@ export class OpenAICompatibleClient implements AIProviderClient {
   private async fetchChatCompletionPing(
     modelId: string,
     credentials: ProviderCredentials
-  ): Promise<void> {
-    const endpoint = getOpenAIEndpoint(
+  ): Promise<number> {
+    const endpoint = getOpenAICompatibleUrl(
       this.provider.endpoint,
       "/v1/chat/completions"
     );
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
-    const isAbortError = (error: unknown): boolean => {
-      return (
-        error instanceof Error &&
-        error.name === "AbortError"
-      );
-    };
 
     try {
       const response = await fetch(endpoint, {
@@ -137,11 +138,14 @@ export class OpenAICompatibleClient implements AIProviderClient {
           `Model ping returned HTTP ${response.status}.`,
           response.status === 401 || response.status === 403
             ? "auth_error"
-            : "provider_error"
+            : "provider_error",
+          response.status
         );
       }
+
+      return response.status;
     } catch (error) {
-      if (isAbortError(error)) {
+      if (error instanceof Error && error.name === "AbortError") {
         throw new ProviderRequestError(
           "Model ping timed out after 10 seconds.",
           "network_error"
@@ -157,7 +161,7 @@ export class OpenAICompatibleClient implements AIProviderClient {
   private async fetchModels(
     credentials: ProviderCredentials
   ): Promise<OpenAIModelsResponse> {
-    const endpoint = getOpenAIEndpoint(
+    const endpoint = getOpenAICompatibleUrl(
       this.provider.endpoint,
       "/v1/models"
     );
@@ -229,7 +233,7 @@ export class OpenAICompatibleClient implements AIProviderClient {
   }
 }
 
-function getOpenAIEndpoint(baseEndpoint: string, path: string): string {
+function getOpenAICompatibleUrl(baseEndpoint: string, path: string): string {
   const base = baseEndpoint.replace(/\/+$/, "");
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 

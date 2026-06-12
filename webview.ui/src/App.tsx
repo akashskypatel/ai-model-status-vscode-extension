@@ -228,10 +228,31 @@ export function App() {
   }
 
   function handleRefreshProvider(providerId: string): void {
+    const modelIds =
+      modelSnapshot?.results
+        .find(result => result.providerId === providerId)
+        ?.models
+        .map(model => model.id) ?? [];
+
+    if (modelIds.length === 0) {
+      return;
+    }
+
+    setPendingModelPings((current: Set<string>) => {
+      const next = new Set(current);
+
+      for (const modelId of modelIds) {
+        next.add(getModelPingKey(providerId, modelId));
+      }
+
+      return next;
+    });
+
     vscode.postMessage({
-      type: "refreshProvider",
+      type: "pingProviderModels",
       payload: {
-        providerId
+        providerId,
+        modelIds
       }
     });
   }
@@ -243,7 +264,7 @@ export function App() {
   function handleRefreshModel(providerId: string, modelId: string): void {
     const key = getModelPingKey(providerId, modelId);
 
-    setPendingModelPings(current => {
+    setPendingModelPings((current: Set<string>) => {
       if (current.has(key)) {
         return current;
       }

@@ -31,6 +31,7 @@ export type PingModelResult = {
   providerId: string;
   modelId: string;
   connectivityStatus: "available" | "unavailable";
+  statusCode?: number;
   errorMessage?: string;
 };
 

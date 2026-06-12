@@ -27,6 +27,7 @@ export function ProviderForm({
   const [authKind, setAuthKind] = useState<ProviderAuthKind>("api-key");
   const [apiKey, setApiKey] = useState("");
   const [localError, setLocalError] = useState<string | undefined>();
+  const [maxRequestsPerMinute, setMaxRequestsPerMinute] = useState("");
 
   const isEditing = Boolean(provider);
 
@@ -36,6 +37,11 @@ export function ProviderForm({
     setEndpoint(provider?.endpoint ?? "");
     setAuthKind(provider?.authKind ?? "api-key");
     setApiKey("");
+    setMaxRequestsPerMinute(
+      provider?.maxRequestsPerMinute !== undefined
+        ? String(provider.maxRequestsPerMinute)
+        : ""
+    );
     setLocalError(undefined);
   }, [provider]);
 
@@ -59,8 +65,18 @@ export function ProviderForm({
     const trimmedName = name.trim();
     const trimmedEndpoint = endpoint.trim();
     const trimmedApiKey = apiKey.trim();
-
+    const parsedMaxRequestsPerMinute =
+      maxRequestsPerMinute.trim().length > 0
+        ? Number(maxRequestsPerMinute)
+        : undefined;
     setLocalError(undefined);
+    if (
+      parsedMaxRequestsPerMinute !== undefined &&
+      (!Number.isFinite(parsedMaxRequestsPerMinute) || parsedMaxRequestsPerMinute <= 0)
+    ) {
+      setLocalError("Max Requests Per Minute must be greater than 0.");
+      return undefined;
+    }
 
     if (!trimmedName) {
       setLocalError("Provider name is required.");
@@ -90,6 +106,10 @@ export function ProviderForm({
       apiKey:
         authKind === "api-key" && trimmedApiKey
           ? trimmedApiKey
+          : undefined,
+      maxRequestsPerMinute:
+        parsedMaxRequestsPerMinute !== undefined
+          ? Math.floor(parsedMaxRequestsPerMinute)
           : undefined
     };
   }
@@ -154,6 +174,18 @@ export function ProviderForm({
             <option value="api-key">API key</option>
             <option value="none">No authentication</option>
           </select>
+        </label>
+
+        <label className="field">
+          <span>Max Requests Per Minute</span>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Optional, e.g. 60"
+            value={maxRequestsPerMinute}
+            onChange={event => setMaxRequestsPerMinute(event.target.value)}
+          />
         </label>
 
         {authKind === "api-key" && (

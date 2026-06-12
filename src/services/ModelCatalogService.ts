@@ -78,6 +78,46 @@ export class ModelCatalogService {
 
     return client.pingModel(modelId, { apiKey });
   }
+  async pingProviderModels(
+    providerId: string,
+    modelIds: string[],
+    onResult: (result: Awaited<ReturnType<ModelCatalogService["pingModel"]>>) => Promise<void>
+  ): Promise<void> {
+    const provider = await this.providerStore.getProvider(providerId);
+
+    if (!provider) {
+      throw new Error(`Provider not found: ${providerId}`);
+    }
+
+    const delayMs = getDelayMs(provider.maxRequestsPerMinute);
+
+    for (const modelId of modelIds) {
+      const result = await this.pingModel(providerId, modelId);
+      await onResult(result);
+
+      if (result.statusCode === 429) {
+        await sleep(15_000);
+        continue;
+      }
+
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
+    }
+  }
+
+}
+
+function getDelayMs(maxRequestsPerMinute: number | undefined): number {
+  if (!maxRequestsPerMinute || maxRequestsPerMinute <= 0) {
+    return 0;
+  }
+
+  return Math.ceil(60_000 / maxRequestsPerMinute);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function categorizeModels(
