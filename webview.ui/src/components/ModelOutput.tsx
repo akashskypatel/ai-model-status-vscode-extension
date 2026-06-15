@@ -374,13 +374,5 @@ function exportModels(models: AIModel[], provider: ProviderConfig): void {
   }));
 
   const jsonString = JSON.stringify(exportedData, null, 2);
-  const blob = new Blob([jsonString], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${provider.name}-models.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  navigator.clipboard.writeText(jsonString);
 }
