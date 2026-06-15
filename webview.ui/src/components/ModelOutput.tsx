@@ -252,8 +252,22 @@ function ModelCard({
   return (
     <article className="model-card">
       <div className="model-card-header">
-        <strong title={model.name}>{model.name}</strong>
+        <div className="model-card-title-row">
+        <strong className="model-card-title" title={model.name}>
+          {model.name}
+        </strong>
 
+        <button
+          type="button"
+          className="icon-button model-copy-button"
+          aria-label={`Copy ${model.name}`}
+          title="Copy model name"
+          onClick={() => navigator.clipboard.writeText(model.name)}
+        >
+          <span className="codicon codicon-copy" aria-hidden="true" />
+        </button>
+      </div>
+        {/* Refresh button */}
         {isPinging ? (
           <span
             className="model-refresh-spinner codicon codicon-loading codicon-modifier-spin"

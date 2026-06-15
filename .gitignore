@@ -1,8 +1,7 @@
-```
 # Compiled and build artifacts
 *.js.map
-out/
-
+out/*
+out/**/*.js
 # Dependencies
 node_modules/
 
@@ -30,8 +29,8 @@ __pycache__/
 dist/
 build/
 target/
-```
+
 # Coverage
 coverage/
 .nyc_output/
-out/
+out/*.js

@@ -326,37 +326,43 @@ select:focus {
 
 .model-card-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
-.model-card-header strong {
+.model-card-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
-  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.model-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-copy-button {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+
+.model-copy-button .codicon {
   font-size: 12px;
 }
 
-.model-refresh-button {
+.model-refresh-button,
+.model-refresh-spinner {
+  margin-left: auto;
   flex: 0 0 auto;
-  min-width: 20px;
-  min-height: 20px;
-  padding: 2px;
-  opacity: 0.85;
 }
 
 .model-refresh-button:hover {
   opacity: 1;
-}
-
-.model-refresh-spinner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  color: var(--vscode-progressBar-background);
 }
 
 .model-card-footer {
