@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type {
   AIModel,
   ModelCatalogSnapshot,
@@ -29,9 +29,11 @@ export function ModelOutput({
   pingedModels,
   onEditProvider
 }: ModelOutputProps) {
+  const [filterText, setFilterText] = useState("");
+
   const providerGroups = useMemo(
-    () => buildProviderGroups(providers, snapshot),
-    [providers, snapshot]
+    () => buildProviderGroups(providers, snapshot, filterText),
+    [providers, snapshot, filterText]
   );
 
   if (!snapshot) {
@@ -59,6 +61,15 @@ export function ModelOutput({
   return (
     <section className="model-view">
       <div className="provider-accordion-list">
+        <div className="filter-bar">
+          <input
+            type="text"
+            className="filter-input"
+            placeholder="Filter models... (use 'avail*' or 'unavail*')"
+            value={filterText}
+            onChange={e => setFilterText(e.target.value)}
+          />
+        </div>
         {providerGroups.map(group => (
           <ProviderAccordion
             key={group.provider.id}
@@ -81,6 +92,31 @@ type ProviderGroup = {
   errorMessage?: string;
   models: AIModel[];
 };
+
+function filterModels(models: AIModel[], filterText: string): AIModel[] {
+  if (!filterText.trim()) {
+    return models;
+  }
+
+  const normalizedFilter = filterText.toLowerCase().trim();
+
+  // Handle special wildcards for availability filtering
+  // Check "unavail" FIRST since it contains "avail"
+  if (normalizedFilter === "unavail*" || normalizedFilter === "unavail") {
+    return models.filter(model => model.connectivityStatus === "unavailable");
+  }
+
+  if (normalizedFilter === "avail*" || normalizedFilter === "avail") {
+    return models.filter(model => model.connectivityStatus === "available");
+  }
+
+  // Default text search on model name and id
+  return models.filter(
+    model =>
+      model.name.toLowerCase().includes(normalizedFilter) ||
+      model.id.toLowerCase().includes(normalizedFilter)
+  );
+}
 
 type ProviderAccordionProps = {
   group: ProviderGroup;
@@ -240,7 +276,8 @@ function ModelCard({
 
 function buildProviderGroups(
   providers: ProviderConfig[],
-  snapshot?: ModelCatalogSnapshot
+  snapshot?: ModelCatalogSnapshot,
+  filterText?: string
 ): ProviderGroup[] {
   if (!snapshot) {
     return providers.map(provider => ({
@@ -257,7 +294,7 @@ function buildProviderGroups(
       provider,
       providerStatus: result?.providerStatus ?? "unknown",
       errorMessage: result?.errorMessage,
-      models: sortModels(result?.models ?? [])
+      models: sortModels(filterModels(result?.models ?? [], filterText || ""))
     };
   });
 }

@@ -1,34 +1,33 @@
 ```
+# Compiled and build artifacts
+*.js.map
+out/
+
 # Dependencies
 node_modules/
-.webpack/
 
-# Build outputs
-dist/
-build/
-*.js.map
-*.tsbuildinfo
-
-# Logs and temp files
-*.log
-*.tmp
+# Editors
+.vscode/
+.idea/
 
 # Environment
 .env
 .env.local
 .env.*
 
-# Editors
-.vscode/
-.idea/
+# Logs and temp files
+*.log
+*.tmp
 *.swp
-*.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Coverage
-coverage/
-.nyc_output/
+# Build directories
+dist/
+build/
+target/
 ```

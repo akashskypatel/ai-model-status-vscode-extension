@@ -417,3 +417,26 @@ pre {
   padding: 8px;
   margin: 8px 0 0;
 }
+
+/* Filter bar */
+
+.filter-bar {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+}
+
+.filter-input {
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  padding: 5px 6px;
+  outline: none;
+  font-size: 12px;
+}
+
+.filter-input:focus {
+  border-color: var(--vscode-focusBorder);
+}
