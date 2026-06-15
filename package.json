@@ -44,6 +44,12 @@
           "command": "aiModelStatus.openSettings",
           "when": "view == aiModelStatus.modelStatusView",
           "group": "navigation@3"
+        },
+        {
+          "command": "aiModelStatus.exportAllModels",
+          "when": "view == aiModelStatus.modelStatusView",
+          "group": "navigation@3",
+          "icon": "$(download)"
         }
       ]
     },
@@ -70,6 +76,11 @@
         "command": "aiModelStatus.refreshModels",
         "title": "Refresh Models",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "aiModelStatus.exportAllModels",
+        "title": "Export All Models",
+        "icon": "$(download)"
       }
     ],
     "viewsContainers": {

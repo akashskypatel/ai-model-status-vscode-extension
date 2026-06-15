@@ -437,13 +437,16 @@ pre {
 /* Filter bar */
 
 .filter-bar {
+  display: flex;
+  gap: 8px;
   padding: 8px 10px;
   border-bottom: 1px solid var(--vscode-panel-border);
   background: var(--vscode-editor-background);
+  align-items: center;
 }
 
 .filter-input {
-  width: 100%;
+  flex: 1;
   box-sizing: border-box;
   color: var(--vscode-input-foreground);
   background: var(--vscode-input-background);
@@ -455,4 +458,16 @@ pre {
 
 .filter-input:focus {
   border-color: var(--vscode-focusBorder);
+}
+
+.export-all-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.export-all-button .button-label {
+  font-size: 11px;
 }

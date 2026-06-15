@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type {
   AIModel,
+  ExtensionMessage,
   ModelCatalogSnapshot,
   ModelType,
   ProviderConfig,
@@ -26,6 +27,7 @@ export function ModelOutput({
   providers,
   snapshot,
   output,
+  onRefreshModels,
   onRefreshProvider,
   onRefreshModel,
   pendingModelPings,
@@ -35,10 +37,39 @@ export function ModelOutput({
 }: ModelOutputProps) {
   const [filterText, setFilterText] = useState("");
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
+      const message = event.data;
+      if (message.type === "exportAllModels") {
+        exportAllFilteredModels();
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [providers, snapshot, filterText, pingedModels, refreshingProviders]);
+
   const providerGroups = useMemo(
     () => buildProviderGroups(providers, snapshot, filterText),
     [providers, snapshot, filterText]
   );
+
+  const exportAllFilteredModels = (): void => {
+    const allModels = providerGroups.flatMap(group => group.models);
+    const exportedData = allModels.map(model => {
+      const provider = providers.find(p => p.id === model.providerId);
+      return {
+        description: model.name,
+        id: model.id,
+        baseUrl: provider?.endpoint || "",
+        name: model.name,
+        envKey: `${provider?.name.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`
+      };
+    });
+
+    const jsonString = JSON.stringify(exportedData, null, 2);
+    copyToClipboard(jsonString);
+  };
 
   if (!snapshot) {
     return (
@@ -107,11 +138,11 @@ function filterModels(models: AIModel[], filterText: string): AIModel[] {
 
   // Handle special wildcards for availability filtering
   // Check "unavail" FIRST since it contains "avail"
-  if (normalizedFilter === "unavail*" || normalizedFilter === "unavail") {
+  if (normalizedFilter.startsWith("unavail")) {
     return models.filter(model => model.connectivityStatus === "unavailable");
   }
 
-  if (normalizedFilter === "avail*" || normalizedFilter === "avail") {
+  if (normalizedFilter.startsWith("avail")) {
     return models.filter(model => model.connectivityStatus === "available");
   }
 
@@ -133,7 +164,8 @@ function filterModels(models: AIModel[], filterText: string): AIModel[] {
     model =>
       model.name.toLowerCase().includes(normalizedFilter) ||
       model.id.toLowerCase().includes(normalizedFilter) ||
-      model.type.toLowerCase().includes(normalizedFilter)
+      model.type.toLowerCase().includes(normalizedFilter) ||
+      model.connectivityStatus.toLowerCase().includes(normalizedFilter)
   );
 }
 

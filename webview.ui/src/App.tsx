@@ -48,6 +48,20 @@ export function App() {
           const snapshot = readModelCatalogSnapshot(message.payload);
 
           setModelSnapshot(snapshot);
+          
+          // Populate pingedModels with models that have lastPingedAt from persisted snapshot
+          if (snapshot) {
+            const pinged = new Set<string>();
+            for (const result of snapshot.results) {
+              for (const model of result.models) {
+                if (model.lastPingedAt) {
+                  pinged.add(getModelPingKey(result.providerId, model.id));
+                }
+              }
+            }
+            setPingedModels(pinged);
+          }
+          
           setOutput(snapshot ?? message.payload);
           return;
         }
@@ -91,6 +105,10 @@ export function App() {
           setOutput({
             message: "Settings UI is not implemented yet."
           });
+          return;
+
+        case "exportAllModels":
+          // Handled by ModelOutput component via useEffect
           return;
 
         case "modelPingResult": {

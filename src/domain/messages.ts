@@ -105,5 +105,8 @@ export type WebviewResponse =
       requestType?: string;
       message: string;
     };
+  }
+  | {
+    type: "exportAllModels";
   };
 

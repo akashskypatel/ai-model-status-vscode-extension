@@ -1,5 +1,6 @@
 import type {
   AIModel,
+  ConnectivityStatus,
   ModelCatalogSnapshot,
   ModelType,
   ProviderConfig,

@@ -22,6 +22,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand("aiModelStatus.refreshModels", async () => {
       await modelStatusViewProvider.refreshModels();
+    }),
+
+    vscode.commands.registerCommand("aiModelStatus.exportAllModels", async () => {
+      await modelStatusViewProvider.exportAllModels();
     })
   );
 }

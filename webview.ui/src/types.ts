@@ -62,6 +62,9 @@ export type ExtensionMessage =
       requestType?: string;
       message: string;
     };
+  }
+  | {
+    type: "exportAllModels";
   };
 
 export type WebviewMessage =
