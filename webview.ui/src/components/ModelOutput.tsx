@@ -7,7 +7,7 @@ import type {
   ProviderStatus
 } from "../types";
 import { getModelPingKey } from "../utils";
-
+import { MODEL_TYPES } from "../constants";
 type ModelOutputProps = {
   providers: ProviderConfig[];
   snapshot?: ModelCatalogSnapshot;
@@ -119,7 +119,7 @@ function filterModels(models: AIModel[], filterText: string): AIModel[] {
   }
 
   // Also allow direct type filtering by checking if filter matches a known ModelType
-  const knownTypes: ModelType[] = ["chat", "embedding", "image", "audio", "reranker", "completion", "unknown"];
+  const knownTypes: ModelType[] = MODEL_TYPES;
   if (knownTypes.some(t => t.toLowerCase() === normalizedFilter)) {
     return models.filter(model => model.type.toLowerCase() === normalizedFilter);
   }
@@ -128,7 +128,8 @@ function filterModels(models: AIModel[], filterText: string): AIModel[] {
   return models.filter(
     model =>
       model.name.toLowerCase().includes(normalizedFilter) ||
-      model.id.toLowerCase().includes(normalizedFilter)
+      model.id.toLowerCase().includes(normalizedFilter) ||
+      model.type.toLowerCase().includes(normalizedFilter)
   );
 }
 
