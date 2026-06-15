@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type {
   AIModel,
   ModelCatalogSnapshot,
+  ModelType,
   ProviderConfig,
   ProviderStatus
 } from "../types";
@@ -108,6 +109,19 @@ function filterModels(models: AIModel[], filterText: string): AIModel[] {
 
   if (normalizedFilter === "avail*" || normalizedFilter === "avail") {
     return models.filter(model => model.connectivityStatus === "available");
+  }
+
+  // Handle model type filtering (e.g., "type:chat", "chat", "embed", etc.)
+  const typeFilterMatch = normalizedFilter.match(/^type:(.+)$/);
+  if (typeFilterMatch) {
+    const typeValue = typeFilterMatch[1];
+    return models.filter(model => model.type.toLowerCase().includes(typeValue));
+  }
+
+  // Also allow direct type filtering by checking if filter matches a known ModelType
+  const knownTypes: ModelType[] = ["chat", "embedding", "image", "audio", "reranker", "completion", "unknown"];
+  if (knownTypes.some(t => t.toLowerCase() === normalizedFilter)) {
+    return models.filter(model => model.type.toLowerCase() === normalizedFilter);
   }
 
   // Default text search on model name and id
