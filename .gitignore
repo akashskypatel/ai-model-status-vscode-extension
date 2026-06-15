@@ -31,3 +31,7 @@ dist/
 build/
 target/
 ```
+# Coverage
+coverage/
+.nyc_output/
+out/
