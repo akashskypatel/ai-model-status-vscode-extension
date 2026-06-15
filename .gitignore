@@ -3,6 +3,7 @@
 *.js
 out/*
 out/**/*.js
+*.vsix
 # Dependencies
 node_modules/
 

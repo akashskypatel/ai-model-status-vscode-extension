@@ -1,7 +1,7 @@
 {
   "name": "ai-model-status",
   "displayName": "AI Model Status",
-  "description": "AI Model Health Check Tracker",
+  "description": "Track and monitor the health status of your AI models across different providers",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.110.0"
@@ -9,6 +9,23 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "ai",
+    "model",
+    "status",
+    "health",
+    "monitor",
+    "llm"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/ai-model-status"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/ai-model-status/issues"
+  },
   "main": "./out/extension.js",
   "contributes": {
     "menus": {
@@ -79,7 +96,12 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "build:webview": "pnpm --prefix ./webview-ui run build",
-    "build": "pnpm run build:webview && pnpm run compile"
+    "build": "pnpm run build:webview && pnpm run compile",
+    "prepackage": "pnpm run build",
+    "package": "vsce package",
+    "package:ci": "vsce package --out ai-model-status.vsix",
+    "publish": "vsce publish",
+    "publish:ovsx": "ovsx publish"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -88,8 +110,10 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.3",
+    "ovsx": "^0.8.3",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.56.1",
+    "vsce": "^3.1.0"
   },
   "dependencies": {
     "@vscode/codicons": "^0.0.45",
