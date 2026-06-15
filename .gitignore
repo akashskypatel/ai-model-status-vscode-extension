@@ -1,5 +1,6 @@
 # Compiled and build artifacts
 *.js.map
+*.js
 out/*
 out/**/*.js
 # Dependencies

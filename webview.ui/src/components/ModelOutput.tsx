@@ -200,6 +200,20 @@ function ProviderAccordion({
           >
             <span className="codicon codicon-edit" aria-hidden="true" />
           </button>
+
+          <button
+            type="button"
+            className="icon-button provider-export-button"
+            aria-label={`Export ${group.provider.name} models`}
+            title="Export filtered models"
+            onClick={event => {
+              event.preventDefault();
+              event.stopPropagation();
+              exportModels(group.models, group.provider);
+            }}
+          >
+            <span className="codicon codicon-download" aria-hidden="true" />
+          </button>
         </span>
       </summary>
 
@@ -348,4 +362,25 @@ function getOwnerFromModelId(modelId: string): string | undefined {
   }
 
   return owner;
+}
+
+function exportModels(models: AIModel[], provider: ProviderConfig): void {
+  const exportedData = models.map(model => ({
+    description: model.name,
+    id: model.id,
+    baseUrl: provider.endpoint,
+    name: model.name,
+    envKey: `${provider.name.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`
+  }));
+
+  const jsonString = JSON.stringify(exportedData, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${provider.name}-models.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
