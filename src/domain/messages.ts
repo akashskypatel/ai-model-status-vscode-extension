@@ -1,4 +1,4 @@
-import type { ProviderInput } from "./types";
+import type { ModelCatalogSnapshot, ProviderInput } from "./types";
 
 export type WebviewRequest =
   | {
@@ -52,6 +52,16 @@ export type WebviewRequest =
       providerId: string;
       modelIds: string[];
     };
+  }
+  | {
+    type: "showNotification";
+    payload: {
+      message: string;
+    };
+  }
+  | {
+    type: "saveModelSnapshot";
+    payload: ModelCatalogSnapshot;
   };
 
 export type WebviewResponse =
@@ -77,6 +87,7 @@ export type WebviewResponse =
       providerId: string;
       modelId: string;
       connectivityStatus: "available" | "unavailable";
+      statusCode?: number;
       errorMessage?: string;
     };
   }

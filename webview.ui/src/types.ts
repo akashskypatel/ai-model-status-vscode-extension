@@ -52,6 +52,7 @@ export type ExtensionMessage =
       providerId: string;
       modelId: string;
       connectivityStatus: ConnectivityStatus;
+      statusCode?: number;
       errorMessage?: string;
     };
   }
@@ -100,6 +101,16 @@ export type WebviewMessage =
       providerId: string;
       modelIds: string[];
     };
+  }
+  | {
+    type: "showNotification";
+    payload: {
+      message: string;
+    };
+  }
+  | {
+    type: "saveModelSnapshot";
+    payload: ModelCatalogSnapshot;
   };
 
 export type ModelType =
@@ -130,6 +141,9 @@ export type AIModel = {
   name: string;
   type: ModelType;
   connectivityStatus: ConnectivityStatus;
+  lastPingedAt?: string;
+  lastPingStatusCode?: number;
+  lastPingErrorMessage?: string;
   raw?: {
     id?: string;
     object?: string;

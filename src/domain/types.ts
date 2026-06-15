@@ -50,6 +50,9 @@ export type AIModel = {
   name: string;
   type: ModelType;
   connectivityStatus: ConnectivityStatus;
+  lastPingedAt?: string;
+  lastPingStatusCode?: number;
+  lastPingErrorMessage?: string;
   raw?: unknown;
 };
 

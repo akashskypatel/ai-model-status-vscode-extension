@@ -270,6 +270,16 @@ select:focus {
   content: ")";
 }
 
+.provider-progress {
+  color: var(--vscode-foreground);
+  font-weight: 500;
+}
+
+.provider-model-count .provider-progress::before,
+.provider-model-count .provider-progress::after {
+  content: "";
+}
+
 .provider-section-body {
   display: flex;
   flex-direction: column;

@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import { getModelPingKey } from "../utils";
 import { MODEL_TYPES } from "../constants";
+import { vscode } from "../vscodeApi";
 type ModelOutputProps = {
   providers: ProviderConfig[];
   snapshot?: ModelCatalogSnapshot;
@@ -17,6 +18,7 @@ type ModelOutputProps = {
   onRefreshModel(providerId: string, modelId: string): void;
   pendingModelPings: Set<string>;
   pingedModels: Set<string>;
+  refreshingProviders: Set<string>;
   onEditProvider(provider: ProviderConfig): void;
 };
 
@@ -28,6 +30,7 @@ export function ModelOutput({
   onRefreshModel,
   pendingModelPings,
   pingedModels,
+  refreshingProviders,
   onEditProvider
 }: ModelOutputProps) {
   const [filterText, setFilterText] = useState("");
@@ -79,6 +82,7 @@ export function ModelOutput({
             onRefreshModel={onRefreshModel}
             pendingModelPings={pendingModelPings}
             pingedModels={pingedModels}
+            refreshingProviders={refreshingProviders}
             onEditProvider={onEditProvider}
           />
         ))}
@@ -139,6 +143,7 @@ type ProviderAccordionProps = {
   onRefreshModel(providerId: string, modelId: string): void;
   pendingModelPings: Set<string>;
   pingedModels: Set<string>;
+  refreshingProviders: Set<string>;
   onEditProvider(provider: ProviderConfig): void;
 };
 
@@ -148,9 +153,31 @@ function ProviderAccordion({
   onRefreshModel,
   pendingModelPings,
   pingedModels,
+  refreshingProviders,
   onEditProvider
 }: ProviderAccordionProps) {
   const modelCount = group.models.length;
+
+  const getPingedCountForProvider = (
+    providerId: string,
+    models: AIModel[],
+    pinged: Set<string>
+  ): number => {
+    let count = 0;
+    for (const model of models) {
+      const key = getModelPingKey(providerId, model.id);
+      if (pinged.has(key)) {
+        count++;
+      }
+    }
+    return count;
+  };
+
+  const pingedCount = getPingedCountForProvider(
+    group.provider.id,
+    group.models,
+    pingedModels
+  );
 
   return (
     <details className="provider-section" open>
@@ -168,7 +195,13 @@ function ProviderAccordion({
           <span className="provider-title">{group.provider.name}</span>
 
           <span className="provider-model-count">
-            {modelCount}
+            {refreshingProviders.has(group.provider.id) ? (
+              <span className="provider-progress" title={`${pingedCount}/${modelCount} models pinged`}>
+                {pingedCount}/{modelCount} ({Math.round((pingedCount / modelCount) * 100)}%)
+              </span>
+            ) : (
+              modelCount
+            )}
           </span>
         </span>
 
@@ -235,7 +268,10 @@ function ProviderAccordion({
                 key={`${model.providerId}:${model.id}`}
                 model={model}
                 isPinging={pendingModelPings.has(getModelPingKey(model.providerId, model.id))}
-                hasBeenPinged={pingedModels.has(getModelPingKey(model.providerId, model.id))}
+                hasBeenPinged={
+                  pingedModels.has(getModelPingKey(model.providerId, model.id)) ||
+                  !!model.lastPingedAt
+                }
                 onRefreshModel={onRefreshModel}
               />
             ))}
@@ -263,6 +299,47 @@ function ModelCard({
     ? model.raw.owned_by
     : getOwnerFromModelId(model.id);
 
+  const formatLastPinged = (isoDate?: string): string => {
+    if (!isoDate) return "Not yet pinged";
+    const date = new Date(isoDate);
+    return date.toLocaleString();
+  };
+
+  const getHttpStatusDescription = (statusCode?: number): string => {
+    if (!statusCode) return "Unknown status";
+    const descriptions: Record<number, string> = {
+      400: "Bad Request",
+      401: "Unauthorized",
+      403: "Forbidden",
+      404: "Not Found",
+      408: "Request Timeout",
+      429: "Too Many Requests",
+      500: "Internal Server Error",
+      502: "Bad Gateway",
+      503: "Service Unavailable",
+      504: "Gateway Timeout"
+    };
+    return descriptions[statusCode] || `HTTP ${statusCode}`;
+  };
+
+  const statusTooltip = () => {
+    const base = model.lastPingedAt
+      ? `Last checked: ${formatLastPinged(model.lastPingedAt)}`
+      : "Not yet pinged";
+    
+    if (model.connectivityStatus === "unavailable") {
+      if (model.lastPingStatusCode) {
+        return `${base}\nStatus: ${model.connectivityStatus}\n${getHttpStatusDescription(model.lastPingStatusCode)}`;
+      }
+      if (model.lastPingErrorMessage) {
+        return `${base}\nStatus: ${model.connectivityStatus}\n${model.lastPingErrorMessage}`;
+      }
+      return `${base}\nStatus: ${model.connectivityStatus}`;
+    }
+    
+    return `${base}\nStatus: ${model.connectivityStatus}`;
+  };
+
   return (
     <article className="model-card">
       <div className="model-card-header">
@@ -276,7 +353,7 @@ function ModelCard({
           className="icon-button model-copy-button"
           aria-label={`Copy ${model.name}`}
           title="Copy model name"
-          onClick={() => navigator.clipboard.writeText(model.name)}
+          onClick={() => copyToClipboard(model.name)}
         >
           <span className="codicon codicon-copy" aria-hidden="true" />
         </button>
@@ -308,7 +385,10 @@ function ModelCard({
         </div>
 
         {hasBeenPinged && (
-          <span className={`status-pill status-${model.connectivityStatus}`}>
+          <span
+            className={`status-pill status-${model.connectivityStatus}`}
+            title={statusTooltip()}
+          >
             {model.connectivityStatus}
           </span>
         )}
@@ -374,5 +454,10 @@ function exportModels(models: AIModel[], provider: ProviderConfig): void {
   }));
 
   const jsonString = JSON.stringify(exportedData, null, 2);
-  navigator.clipboard.writeText(jsonString);
+  copyToClipboard(jsonString);
+}
+
+function copyToClipboard(text: string): void {
+  navigator.clipboard.writeText(text);
+  vscode.postMessage({ type: "showNotification", payload: { message: "Copied to clipboard!" } });
 }

@@ -1,19 +1,24 @@
 import * as vscode from "vscode";
 import { ProviderStore } from "./storage/ProviderStore";
+import { ModelStore } from "./storage/ModelStore";
 import { ModelCatalogService } from "./services/ModelCatalogService";
 import { getErrorMessage } from "./domain/errors";
+import type { ModelCatalogSnapshot } from "./domain/types";
 import type { WebviewRequest, WebviewResponse } from "./domain/messages";
 
 export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "aiModelStatus.modelStatusView";
 
   private webviewView?: vscode.WebviewView;
+  private cachedSnapshot?: ModelCatalogSnapshot;
 
   private readonly providerStore: ProviderStore;
+  private readonly modelStore: ModelStore;
   private readonly modelCatalogService: ModelCatalogService;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.providerStore = new ProviderStore(context);
+    this.modelStore = new ModelStore(context);
     this.modelCatalogService = new ModelCatalogService(this.providerStore);
   }
 
@@ -37,13 +42,29 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
     );
   }
 
+  async loadInitialSnapshot(): Promise<void> {
+    const persisted = await this.modelStore.getSnapshot();
+    if (persisted) {
+      this.cachedSnapshot = persisted;
+      await this.postMessage({
+        type: "modelSnapshotUpdated",
+        payload: persisted
+      });
+    } else {
+      await this.refreshModels();
+    }
+  }
+
   async refreshModels(): Promise<void> {
     const snapshot = await this.modelCatalogService.getSnapshot();
+    this.cachedSnapshot = snapshot;
 
     await this.postMessage({
       type: "modelSnapshotUpdated",
       payload: snapshot
     });
+
+    await this.modelStore.saveSnapshot(snapshot);
   }
 
   async postProviders(): Promise<void> {
@@ -74,7 +95,7 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case "ready": {
           await this.postProviders();
-          await this.refreshModels();
+          await this.loadInitialSnapshot();
           return;
         }
 
@@ -190,6 +211,17 @@ export class ModelStatusViewProvider implements vscode.WebviewViewProvider {
             }
           );
 
+          return;
+        }
+
+        case "showNotification": {
+          await vscode.window.showInformationMessage(message.payload.message);
+          return;
+        }
+
+        case "saveModelSnapshot": {
+          await this.modelStore.saveSnapshot(message.payload);
+          this.cachedSnapshot = message.payload;
           return;
         }
 

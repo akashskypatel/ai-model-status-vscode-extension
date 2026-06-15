@@ -26,6 +26,9 @@ export function App() {
   const [pingedModels, setPingedModels] = useState<Set<string>>(
     () => new Set<string>()
   );
+  const [refreshingProviders, setRefreshingProviders] = useState<Set<string>>(
+    () => new Set<string>()
+  );
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
       const message = event.data;
@@ -106,12 +109,30 @@ export function App() {
             return next;
           });
 
+          setRefreshingProviders(current => {
+            const next = new Set(current);
+            const providerResult = modelSnapshot?.results.find(
+              r => r.providerId === result.providerId
+            );
+            if (providerResult) {
+              const newPingedModels = new Set(pingedModels);
+              newPingedModels.add(key);
+              const allModelsPinged = providerResult.models.every(model =>
+                newPingedModels.has(getModelPingKey(result.providerId, model.id))
+              );
+              if (allModelsPinged) {
+                next.delete(result.providerId);
+              }
+            }
+            return next;
+          });
+
           setModelSnapshot(current => {
             if (!current) {
               return current;
             }
 
-            return {
+            const updated = {
               ...current,
               results: current.results.map(providerResult => {
                 if (providerResult.providerId !== result.providerId) {
@@ -127,12 +148,22 @@ export function App() {
 
                     return {
                       ...model,
-                      connectivityStatus: result.connectivityStatus
+                      connectivityStatus: result.connectivityStatus,
+                      lastPingedAt: new Date().toISOString(),
+                      lastPingStatusCode: result.statusCode,
+                      lastPingErrorMessage: result.errorMessage
                     };
                   })
                 };
               })
             };
+
+            vscode.postMessage({
+              type: "saveModelSnapshot",
+              payload: updated
+            });
+
+            return updated;
           });
 
           setOutput(result);
@@ -239,6 +270,12 @@ export function App() {
       return;
     }
 
+    setRefreshingProviders(prev => {
+      const next = new Set(prev);
+      next.add(providerId);
+      return next;
+    });
+
     setPendingModelPings((current: Set<string>) => {
       const next = new Set(current);
 
@@ -326,6 +363,7 @@ export function App() {
         onRefreshModel={handleRefreshModel}
         pendingModelPings={pendingModelPings}
         pingedModels={pingedModels}
+        refreshingProviders={refreshingProviders}
         onEditProvider={handleEditProvider}
       />
     </main>
