@@ -1,37 +1,12 @@
 import type {
   AIModel,
-  ConnectivityStatus,
   ModelCatalogSnapshot,
   ModelType,
   ProviderConfig,
   ProviderModelsResult,
   ProviderStatus
 } from "./types";
-
-const MODEL_TYPES: ModelType[] = [
-  "chat",
-  "embedding",
-  "image",
-  "audio",
-  "reranker",
-  "completion",
-  "unknown"
-];
-
-const PROVIDER_STATUSES: ProviderStatus[] = [
-  "unknown",
-  "connected",
-  "auth_error",
-  "network_error",
-  "invalid_endpoint",
-  "provider_error"
-];
-
-const CONNECTIVITY_STATUSES: ConnectivityStatus[] = [
-  "unknown",
-  "available",
-  "unavailable"
-];
+import { MODEL_TYPES, PROVIDER_STATUSES, CONNECTIVITY_STATUSES } from "./constants";
 
 export function readModelCatalogSnapshot(
   payload: unknown
@@ -147,18 +122,18 @@ function isProviderConfig(value: unknown): value is ProviderConfig {
   );
 }
 
-function isModelType(value: unknown): value is ModelType {
+export function isModelType(value: unknown): value is ModelType {
   return typeof value === "string" && MODEL_TYPES.includes(value as ModelType);
 }
 
-function isProviderStatus(value: unknown): value is ProviderStatus {
+export function isProviderStatus(value: unknown): value is ProviderStatus {
   return (
     typeof value === "string" &&
     PROVIDER_STATUSES.includes(value as ProviderStatus)
   );
 }
 
-function isConnectivityStatus(value: unknown): value is ConnectivityStatus {
+export function isConnectivityStatus(value: unknown): value is ConnectivityStatus {
   return (
     typeof value === "string" &&
     CONNECTIVITY_STATUSES.includes(value as ConnectivityStatus)

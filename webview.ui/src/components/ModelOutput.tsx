@@ -5,6 +5,7 @@ import type {
   ProviderConfig,
   ProviderStatus
 } from "../types";
+import { getModelPingKey } from "../utils";
 
 type ModelOutputProps = {
   providers: ProviderConfig[];
@@ -281,8 +282,4 @@ function getOwnerFromModelId(modelId: string): string | undefined {
   }
 
   return owner;
-}
-
-function getModelPingKey(providerId: string, modelId: string): string {
-  return `${providerId}:${modelId}`;
 }

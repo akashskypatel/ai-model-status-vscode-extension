@@ -10,7 +10,8 @@ import type {
   ProviderStatus
 } from "./types";
 import { vscode } from "./vscodeApi";
-import { readModelCatalogSnapshot } from "./modelSnapshot";
+import { readModelCatalogSnapshot, isProviderStatus } from "./modelSnapshot";
+import { getModelPingKey } from "./utils";
 
 export function App() {
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
@@ -255,10 +256,6 @@ export function App() {
         modelIds
       }
     });
-  }
-
-  function getModelPingKey(providerId: string, modelId: string): string {
-    return `${providerId}:${modelId}`;
   }
 
   function handleRefreshModel(providerId: string, modelId: string): void {
