@@ -10,12 +10,6 @@ export function ProviderList({ providers, onEditProvider }: ProviderListProps) {
     <section className="panel">
       <h2>Providers</h2>
 
-      {providers.length === 0 && (
-        <div className="empty">
-          No providers added yet. Use the + button in the view title.
-        </div>
-      )}
-
       {providers.length > 0 && (
         <ul className="list">
           {providers.map(provider => (

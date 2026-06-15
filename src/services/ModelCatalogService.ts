@@ -2,21 +2,11 @@ import type {
   AIModel,
   CategorizedModels,
   ModelCatalogSnapshot,
-  ModelType,
   ProviderModelsResult
 } from "../domain/types";
+import { MODEL_TYPES } from "../domain/constants";
 import { createProviderClient } from "../providers/ProviderClientFactory";
 import { ProviderStore } from "../storage/ProviderStore";
-
-const MODEL_TYPES: ModelType[] = [
-  "chat",
-  "embedding",
-  "image",
-  "audio",
-  "reranker",
-  "completion",
-  "unknown"
-];
 
 export class ModelCatalogService {
   constructor(private readonly providerStore: ProviderStore) { }
