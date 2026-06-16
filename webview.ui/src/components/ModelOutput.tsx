@@ -58,13 +58,7 @@ export function ModelOutput({
     const allModels = providerGroups.flatMap(group => group.models);
     const exportedData = allModels.map(model => {
       const provider = providers.find(p => p.id === model.providerId);
-      return {
-        description: model.name,
-        id: model.id,
-        baseUrl: provider?.endpoint || "",
-        name: model.name,
-        envKey: `${provider?.name.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`
-      };
+      return exportModel(model, provider!);
     });
 
     const jsonString = JSON.stringify(exportedData, null, 2);
@@ -104,6 +98,17 @@ export function ModelOutput({
             value={filterText}
             onChange={e => setFilterText(e.target.value)}
           />
+          {filterText && (
+            <button
+              type="button"
+              className="icon-button filter-clear-button"
+              aria-label="Clear filter"
+              title="Clear filter"
+              onClick={() => setFilterText("")}
+            >
+              <span className="codicon codicon-close" aria-hidden="true" />
+            </button>
+          )}
         </div>
         {providerGroups.map(group => (
           <ProviderAccordion
@@ -456,12 +461,26 @@ function buildProviderGroups(
 
 function sortModels(models: AIModel[]): AIModel[] {
   return [...models].sort((left, right) => {
+    // Sort by availability first: available > unavailable > unknown
+    const leftStatus = left.connectivityStatus;
+    const rightStatus = right.connectivityStatus;
+    
+    const statusOrder = { available: 0, unknown: 1, unavailable: 2 } as const;
+    const leftOrder = statusOrder[leftStatus] ?? 1;
+    const rightOrder = statusOrder[rightStatus] ?? 1;
+    
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+
+    // Then sort by type
     const typeCompare = left.type.localeCompare(right.type);
 
     if (typeCompare !== 0) {
       return typeCompare;
     }
 
+    // Finally sort by name
     return left.name.localeCompare(right.name);
   });
 }
@@ -477,16 +496,26 @@ function getOwnerFromModelId(modelId: string): string | undefined {
 }
 
 function exportModels(models: AIModel[], provider: ProviderConfig): void {
-  const exportedData = models.map(model => ({
-    description: model.name,
-    id: model.id,
-    baseUrl: provider.endpoint,
-    name: model.name,
-    envKey: `${provider.name.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`
-  }));
+  const exportedData = models.map(model => exportModel(model, provider));
 
   const jsonString = JSON.stringify(exportedData, null, 2);
   copyToClipboard(jsonString);
+}
+
+function exportModel(model: AIModel, provider: ProviderConfig): {
+  description: string;
+  id: string;
+  baseUrl: string;
+  name: string;
+  envKey: string;
+} {
+  return {
+    description: `${model.name} model hosted via the ${provider.name} API platform.`,
+    id: model.id,
+    baseUrl: provider.endpoint,
+    name: `${provider.name.toUpperCase()}: ${model.name}`,
+    envKey: `${provider.name.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_API_KEY`
+  };
 }
 
 function copyToClipboard(text: string): void {
