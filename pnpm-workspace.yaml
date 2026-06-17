@@ -1,0 +1,5 @@
+allowBuilds:
+  '@vscode/vsce-sign': true
+  es5-ext: true
+  keytar: true
+  ttf2woff2: true

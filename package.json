@@ -3,6 +3,13 @@
   "displayName": "AI Model Status",
   "description": "Track and monitor the health status of your AI models across different providers",
   "version": "0.0.1",
+  "icon": "resources/icon_bg.png",
+  "author": {
+    "name": "Akash Patel",
+    "email": "akashskypatel@gmail.com",
+    "url": "https://github.com/akashskypatel"
+  },
+  "publisher": "akashskypatel",
   "engines": {
     "vscode": "^1.110.0"
   },
@@ -17,14 +24,13 @@
     "monitor",
     "llm"
   ],
-  "author": "Your Name",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ai-model-status"
+    "url": "https://github.com/akashskypatel/ai-model-status"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/ai-model-status/issues"
+    "url": "https://github.com/akashskypatel/ai-model-status/issues"
   },
   "main": "./out/extension.js",
   "contributes": {
@@ -106,28 +112,27 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "build:webview": "pnpm --prefix ./webview-ui run build",
+    "build:webview": "pnpm --prefix ./webview.ui run build",
     "build": "pnpm run build:webview && pnpm run compile",
     "prepackage": "pnpm run build",
-    "package": "vsce package",
-    "package:ci": "vsce package --out ai-model-status.vsix",
+    "package": "vsce package --no-dependencies",
+    "package:ci": "pnpm run build && vsce package --no-dependencies --out ai-model-status.vsix",
     "publish": "vsce publish",
     "publish:ovsx": "ovsx publish"
   },
+  "dependencies": {},
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.110.0",
-    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
     "eslint": "^9.39.3",
-    "ovsx": "^0.8.3",
+    "fantasticon": "^4.1.0",
+    "ovsx": "^1.0.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.1",
-    "vsce": "^3.1.0"
-  },
-  "dependencies": {
-    "@vscode/codicons": "^0.0.45",
     "vite": "^8.0.16"
   }
 }

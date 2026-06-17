@@ -6,13 +6,24 @@
 .pnpm-lock.yaml
 pnpm-lock.yaml
 package-lock.json
-node_modules/**
+.vscode-test.*
+.vsc-extension-quickstart.md
+
+# Ignore source files
 src/**
-webview.ui/node_modules/**
 webview.ui/src/**
+webview.ui/node_modules/**
+
+# Ignore type definitions and maps
 *.ts
 *.tsx
 *.js.map
 *.d.ts
-.vscode-test.*
-.vsc-extension-quickstart.md
+
+# Ignore all JS files except in build outputs
+*.js
+!out/**
+!webview.ui/dist/**
+
+# Exclude node_modules - we use CDN for codicons
+node_modules/**
