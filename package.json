@@ -103,7 +103,8 @@
         {
           "id": "aiModelStatus.modelStatusView",
           "type": "webview",
-          "name": "Model Status"
+          "name": "Model Status",
+          "icon": "resources/icon.svg"
         }
       ]
     }
